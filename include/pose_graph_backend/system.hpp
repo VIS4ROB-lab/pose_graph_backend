@@ -52,9 +52,8 @@
 #include <comm_msgs/fused_pcl.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <geodetic_utils/geodetic_conv.hpp>
-#include <planner_msgs/Loop_Closure.h>
 #include <nav_msgs/Path.h>
-#include "pcl_conversions/pcl_conversions.h"
+#include <pcl_conversions/pcl_conversions.h>
 #include <pcl/common/transforms.h>
 
 #include "threadsafe/ThreadsafeQueue.hpp"
@@ -125,12 +124,6 @@ public:
   /// \brief Constructor
   /// @param params The system parameters.
   System(const SystemParameters& params);
-
-  /// \brief Set the Full callback
-  /// @param callback The callback function.
-  void setFullCallback(const FullCallback& callback) {
-    full_callback_ = callback;
-  }
 
   /// \brief Set the transform callback.
   /// @param callback The callback function.
@@ -380,7 +373,6 @@ protected:
   int kf_loop_detection_skip_;
 
   // Store the callbacks
-  FullCallback full_callback_;
   FullCallback pcl_callback_;
   TransformCallback transform_callback_;
   PathCallback path_callback_;

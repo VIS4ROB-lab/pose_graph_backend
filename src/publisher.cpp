@@ -80,9 +80,6 @@ void Publisher::setNodeHandle(ros::NodeHandle &nh,
     ros::Publisher tmp_pub3 = nh_->advertise<geometry_msgs::TransformStamped>(
           "transform" + std::to_string(i), 1);
     transform_pub3_.push_back(tmp_pub3);
-//     ros::Publisher tmp_pub_ptclouds = nh_->advertise<planner_msgs::Loop_Closure>(
-//           "/loop_closure_octomap", 1);
-//     pointclouds_pub_.push_back(tmp_pub_ptclouds);
 
     ros::Publisher tmp_pub_pgbe_ptcloud = nh_->advertise<sensor_msgs::PointCloud2>(
           "pgbe_pointcloud", 1);
@@ -253,47 +250,6 @@ void Publisher::publishCamVizCallback(const uint64_t agent_id, const double &tim
       header.stamp = ros::Time(timestamp);
       header.frame_id = "world";
       camera_pose_visual_[agent_id].publish_by(camera_pose_visual_pub_[agent_id], header);
-}
-
-
-// Not used in current set up
-void Publisher::publishFullCallback(
-    const double &timestamp,
-    const uint64_t agent_id,
-    const Result result) {
-
-    // Check if we have subscribers
-//     if(pointclouds_pub_[agent_id].getNumSubscribers() == 0) {
-//         ROS_ERROR("Cannot communicate loop closure to planner.");
-//         return;
-//     }
-
-    // Create the message
-    planner_msgs::Loop_Closure loop_closure_msg;
-    loop_closure_msg.header.stamp = ros::Time(timestamp);
-
-    // Add the pointclouds and the poses
-    loop_closure_msg.pointclouds = result.point_clouds;
-
-    for(size_t i=0; i<result.T_W_Cs.size(); ++i) {
-        geometry_msgs::Pose current_pose;
-        current_pose.position.x = (result.T_W_Cs[i])(0,3);
-        current_pose.position.y = (result.T_W_Cs[i])(1,3);
-        current_pose.position.z = (result.T_W_Cs[i])(2,3);
-
-        const Eigen::Quaterniond quat_eigen(
-                    (result.T_W_Cs[i]).block<3,3>(0,0));
-        current_pose.orientation.x = quat_eigen.x();
-        current_pose.orientation.y = quat_eigen.y();
-        current_pose.orientation.z = quat_eigen.z();
-        current_pose.orientation.w = quat_eigen.w();
-
-        loop_closure_msg.poses.push_back(current_pose);
-    }
-
-    // Publish the message
-    pointclouds_pub_[agent_id].publish(loop_closure_msg);
-    ROS_INFO("Sent loop closure information to planner.");
 }
 
 void Publisher::publishTfTransforms() {

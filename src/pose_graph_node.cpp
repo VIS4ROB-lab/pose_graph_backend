@@ -58,19 +58,19 @@ int main(int argc, char **argv) {
   // Read the parameters
   int num_agents = 0;
   if (!nh.getParam("num_agents", num_agents)) {
-    ROS_ERROR("Cannot get number of agents, abort...");
+    ROS_ERROR("[PGB] Cannot get number of agents, abort...");
     return -1;
   }
-  ROS_INFO("Num agents: %d", num_agents);
+  ROS_INFO("[PGB] Num agents: %d", num_agents);
 
   pgbe::ParameterReader param_reader(nh, num_agents);
   pgbe::SystemParameters parameters;
   bool read_params = param_reader.getParameters(parameters);
   if (!read_params) {
-    ROS_ERROR("Could not read the required parameters, abort...");
+    ROS_ERROR("[PGB] Could not read the required parameters, abort...");
     return -1;
   }
-  ROS_INFO("Sucessfully read the parameters and the vocabulary");
+  ROS_INFO("[PGB] Sucessfully read the parameters and the vocabulary");
 
   // Create the system
   std::shared_ptr<pgbe::System> system (new pgbe::System(parameters));
@@ -79,16 +79,11 @@ int main(int argc, char **argv) {
   pgbe::Subscriber subscriber(nh, parameters, system);
   pgbe::Publisher publisher(nh, parameters);
 
-
   // Register the publisher callbacks
   system->setTransformCallback(std::bind
       (&pgbe::Publisher::publishTransformsAsCallback,&publisher,
        std::placeholders::_1, std::placeholders::_2,
        std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
-       
-  system->setFullCallback(std::bind
-      (&pgbe::Publisher::publishFullCallback,&publisher,
-       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
   
   system->setPCLCallback(std::bind
       (&pgbe::Publisher::publishPCLCallback,&publisher,
@@ -103,7 +98,7 @@ int main(int argc, char **argv) {
   system->setFusedPCLCallback(std::bind(&pgbe::Publisher::publishFusedPCLCallback,&publisher,
       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
 
-  std::cout << "Set callbacks" << std::endl;
+  ROS_INFO("[PGB] Set callbacks");
   ros::spin();
   return 0;
 }

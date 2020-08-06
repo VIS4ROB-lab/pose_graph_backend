@@ -74,10 +74,10 @@ struct GPSmeasurement {
     raw_measurement(raw_measurement_),
     local_measurement(local_measurement_),
     converted(true) {}
-  bool converted;
   double timestamp;
   Eigen::Vector3d raw_measurement; //[latitude, longitude, altitude]
   Eigen::Vector3d local_measurement; //[east, north, up]
+  bool converted;
   Eigen::Matrix3d covariance;
 };
 

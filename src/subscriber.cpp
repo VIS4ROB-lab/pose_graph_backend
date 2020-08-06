@@ -102,7 +102,7 @@ void Subscriber::setNodeHandle(ros::NodeHandle &nh,
           boost::bind(&Subscriber::fusedPointCloudCallback, this, _1, i));
     sub_fused_pcl_.push_back(tmp_sub_fused_pcl);
   }
-  std::cout << "Subscribers set" << std::endl;
+  ROS_INFO("[PGB] Subscribers set");
 }
 
 void Subscriber::keyFrameCallback(

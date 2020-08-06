@@ -142,7 +142,6 @@ protected:
   std::vector<ros::Publisher> transform_pub1_;
   std::vector<ros::Publisher> transform_pub2_;
   std::vector<ros::Publisher> transform_pub3_;
-  std::vector<ros::Publisher> pointclouds_pub_;
   std::vector<ros::Publisher> pgbe_pointclouds_pub_;
   std::vector<ros::Publisher> path_pub_;
   std::vector<ros::Publisher> camera_pose_visual_pub_;

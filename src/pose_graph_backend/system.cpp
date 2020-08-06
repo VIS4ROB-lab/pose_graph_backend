@@ -39,18 +39,16 @@
 
 #include "pose_graph_backend/system.hpp"
 #include "pose_graph_backend/optimizer.hpp"
-#include "pcl_conversions/pcl_conversions.h"
+#include <pcl_conversions/pcl_conversions.h>
 
-#include <robopt/local-parameterization/pose-quaternion-local-param.h>
-#include <robopt/local-parameterization/pose-quaternion-yaw-local-param.h>
-#include <robopt/reprojection-error/relative-euclidean.h>
-#include <robopt/posegraph-error/four-dof-between.h>
-#include <robopt/posegraph-error/six-dof-between.h>
-#include <robopt/posegraph-error/gps-error-autodiff.h>
-#include <robopt/posegraph-error/four-dof-prior-autodiff.h>
-#include <robopt/common/definitions.h>
-
-
+#include <robopt_open/local-parameterization/pose-quaternion-local-param.h>
+#include <robopt_open/local-parameterization/pose-quaternion-yaw-local-param.h>
+#include <robopt_open/reprojection-error/relative-euclidean.h>
+#include <robopt_open/posegraph-error/four-dof-between.h>
+#include <robopt_open/posegraph-error/six-dof-between.h>
+#include <robopt_open/posegraph-error/gps-error-autodiff.h>
+#include <robopt_open/posegraph-error/four-dof-prior-autodiff.h>
+#include <robopt_open/common/definitions.h>
 
 namespace pgbe {
 
@@ -199,7 +197,8 @@ void System::init() {
           &System::fusedPclConsumerLoop, this, i);
     publisher_threads_.emplace_back(&System::publisherLoop, this, i);
   }
-  std::cout << "Started all threads" << std::endl;
+
+  ROS_INFO("[PGB] Started all threads");
 }
 
 

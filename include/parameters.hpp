@@ -54,10 +54,12 @@ struct CameraParameters {
     camera(NULL) {}
   CameraParameters(const uint64_t& agent_id_,
                    const std::string& cam_file) :
-    agent_id(agent_id_),
-    camera(aslam::NCamera::loadFromYaml(cam_file)) {}
-  aslam::NCamera::Ptr camera;
+    agent_id(agent_id_) {
+    camera = std::make_shared<aslam::NCamera>();
+    camera->deserializeFromFile(cam_file);
+  }
   uint64_t agent_id;
+  aslam::NCamera::Ptr camera;
 };
 
 typedef std::vector<CameraParameters, Eigen::aligned_allocator<
@@ -88,10 +90,10 @@ typedef std::vector<GpsParameters, Eigen::aligned_allocator<
 struct SystemParameters {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   SystemParameters() :
-    camera_parameters(CameraParametersVector()),
-    gps_parameters(GpsParametersVector()),
     num_agents(0),
     simulation(false),
+    camera_parameters(CameraParametersVector()),
+    gps_parameters(GpsParametersVector()),
     loop_candidate_min_score(0.01),
     loop_image_min_matches(50),
     loop_detect_sac_thresh(25),
@@ -104,6 +106,7 @@ struct SystemParameters {
     max_loop_candidates(5),
     gps_align_num_corr(5),
     gps_align_cov_max(1.0),
+    ignore_gps_altitude(true),
     loop_detect_skip_kf(2),
     information_odom_drift_yaw(500),
     information_odom_drift_p(100),
@@ -114,7 +117,6 @@ struct SystemParameters {
     information_loop_edges_yaw(2),
     information_loop_edges_p(0.5),
     gps_active(std::vector<bool>(1,0)),
-    ignore_gps_altitude(true), 
     local_opt_window_size(5),
     rel_pose_corr_min(12) {}
   SystemParameters(const size_t num_agents_,
@@ -146,8 +148,10 @@ struct SystemParameters {
                    const bool ignore_gps_altitude_,
                    const int local_opt_window_size_,
                    const int rel_pose_corr_min_):
-    num_agents(num_agents_), camera_parameters(cam_vector_),
-    gps_parameters(gps_parameters_), loop_candidate_min_score(loop_candidate_min_score_),
+    num_agents(num_agents_), simulation(simulation_),
+    camera_parameters(cam_vector_),
+    gps_parameters(gps_parameters_),
+    loop_candidate_min_score(loop_candidate_min_score_),
     loop_image_min_matches(loop_image_min_matches_), 
     loop_detect_sac_thresh(loop_detect_sac_thresh_),
     loop_detect_sac_max_iter(loop_detect_sac_max_iter_), 
@@ -159,6 +163,7 @@ struct SystemParameters {
     max_loop_candidates(max_loop_candidates_),
     gps_align_num_corr(gps_align_num_corr_),
     gps_align_cov_max(gps_align_cov_max_),
+    gps_active(gps_active_),
     loop_detect_skip_kf(loop_detect_skip_kf_),
     information_odom_drift_yaw(information_odom_drift_yaw_),
     information_odom_drift_p(information_odom_drift_p_),
@@ -168,7 +173,6 @@ struct SystemParameters {
     information_odom_edges_p(information_odom_edges_p_),
     information_loop_edges_yaw(information_loop_edges_yaw_),
     information_loop_edges_p(information_loop_edges_p_),
-    gps_active(gps_active_),
     ignore_gps_altitude(ignore_gps_altitude_),
     local_opt_window_size(local_opt_window_size_),
     rel_pose_corr_min(rel_pose_corr_min_) {}

@@ -45,7 +45,7 @@
 #include <Eigen/Dense>
 #include <opencv2/opencv.hpp>
 #include <aslam/cameras/camera.h>
-#include <robopt/common/definitions.h>
+#include <robopt_open/common/definitions.h>
 #include <comm_msgs/keyframe.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <pcl/common/transforms.h>

@@ -40,14 +40,14 @@
 #include <aslam/cameras/distortion-equidistant.h>
 #include <aslam/cameras/camera-pinhole.h>
 #include <ceres/covariance.h>
-#include <robopt/local-parameterization/pose-quaternion-local-param.h>
-#include <robopt/local-parameterization/pose-quaternion-yaw-local-param.h>
-#include <robopt/reprojection-error/relative-euclidean.h>
-#include <robopt/posegraph-error/four-dof-between.h>
-#include <robopt/posegraph-error/six-dof-between.h>
-#include <robopt/posegraph-error/gps-error-autodiff.h>
-#include <robopt/posegraph-error/four-dof-prior-autodiff.h>
-#include <robopt/common/definitions.h>
+#include <robopt_open/local-parameterization/pose-quaternion-local-param.h>
+#include <robopt_open/local-parameterization/pose-quaternion-yaw-local-param.h>
+#include <robopt_open/reprojection-error/relative-euclidean.h>
+#include <robopt_open/posegraph-error/four-dof-between.h>
+#include <robopt_open/posegraph-error/six-dof-between.h>
+#include <robopt_open/posegraph-error/gps-error-autodiff.h>
+#include <robopt_open/posegraph-error/four-dof-prior-autodiff.h>
+#include <robopt_open/common/definitions.h>
 
 #include "pose_graph_backend/optimizer.hpp"
 
