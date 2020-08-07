@@ -1,6 +1,7 @@
 Pose Graph Backend
 ==================
 This repository contains an optimization-based pose-graph backend for multi-agent sensor fusion. This repository is used in a wider framework for multi-robot path planning, available [here](https://github.com/VIS4ROB-lab/multi_robot_coordination).  
+
 If you use this code in your academic work, please cite:  
 _"Multi-robot Coordination with Agent-Server Architecture for Autonomous Navigation in Partially Unknown Environments"_ by Luca Bartolomei, Marco Karrer and Margarita Chli, IROS 2020.  
 
@@ -51,6 +52,11 @@ Finally, build the workspace:
 $ cd ~/catkin_ws
 $ catkin build
 ```  
+
+Once the build is complete, source the workspace:
+```
+$ source devel/setup.bash
+```
 
 ## Topics ##
 The following are the ROS topics the Pose Graph backend node subscribes to. The X represents the x-th agent:
