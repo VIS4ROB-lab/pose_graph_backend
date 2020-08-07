@@ -1,30 +1,31 @@
 /*
-* Copyright (c) 2018, Vision for Robotics Lab
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-* * Redistributions of source code must retain the above copyright
-* notice, this list of conditions and the following disclaimer.
-* * Redistributions in binary form must reproduce the above copyright
-* notice, this list of conditions and the following disclaimer in the
-* documentation and/or other materials provided with the distribution.
-* * Neither the name of the Vision for Robotics Lab, ETH Zurich nor the
-* names of its contributors may be used to endorse or promote products
-* derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-* ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*
-*/
+ * Copyright (c) 2018, Vision for Robotics Lab
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * * Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * * Neither the name of the Vision for Robotics Lab, ETH Zurich nor the
+ * names of its contributors may be used to endorse or promote products
+ * derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
 
 /*
  * subscriber.hpp
@@ -40,18 +41,18 @@
 
 #include <ros/ros.h>
 #include <Eigen/Core>
-#include <Eigen/Geometry>
 #include <Eigen/Dense>
+#include <Eigen/Geometry>
 
 #include <message_filters/subscriber.h>
-#include <message_filters/synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
+#include <message_filters/synchronizer.h>
 
-#include <sensor_msgs/PointCloud2.h>
-#include <sensor_msgs/NavSatFix.h>
-#include <geometry_msgs/TransformStamped.h>
-#include <geometry_msgs/PointStamped.h>
 #include <comm_msgs/keyframe.h>
+#include <geometry_msgs/PointStamped.h>
+#include <geometry_msgs/TransformStamped.h>
+#include <sensor_msgs/NavSatFix.h>
+#include <sensor_msgs/PointCloud2.h>
 
 #include "parameters.hpp"
 #include "pose_graph_backend/system.hpp"
@@ -61,7 +62,7 @@ namespace pgbe {
 
 class Subscriber {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-public:
+ public:
   /// \brief Default constructor.
   Subscriber();
   ~Subscriber();
@@ -69,16 +70,14 @@ public:
   /// \brief Constructor with parameters.
   /// @param nh The ros node-handle.
   /// @param parameters The system parameters.
-  Subscriber(ros::NodeHandle& nh,
-             const SystemParameters& parameters,
+  Subscriber(ros::NodeHandle& nh, const SystemParameters& parameters,
              std::shared_ptr<System> system);
 
   /// \brief Set the node handle. This sets up the callbacks.
   /// @param nh The node handle.
-  void setNodeHandle(ros::NodeHandle& nh,
-                     const SystemParameters& parameters);
+  void setNodeHandle(ros::NodeHandle& nh, const SystemParameters& parameters);
 
-protected:
+ protected:
   /// \brief Keyframe callback.
   /// @param kf_msg The keyframe message.
   /// @param pointcloud_msg The pointcloud associated to the keyframe.
@@ -97,8 +96,9 @@ protected:
   void pointCloudCallback(const sensor_msgs::PointCloud2ConstPtr& pcl_msg,
                           const uint64_t agent_id);
 
-  void fusedPointCloudCallback(const comm_msgs::fused_pclConstPtr &fused_pcl_msg, 
-                          const uint64_t agent_id);
+  void fusedPointCloudCallback(
+      const comm_msgs::fused_pclConstPtr& fused_pcl_msg,
+      const uint64_t agent_id);
 
   /// \brief GPS measurement callback.
   /// @param gps_msg The gps measurement.
@@ -116,7 +116,7 @@ protected:
   /// @param msg The vicon measurement.
   /// @param agent_id The agent id from which the gps measuremens is from
   void fakeGpsCallback2(const geometry_msgs::PointStampedConstPtr& msg,
-                       const uint64_t agent_id);
+                        const uint64_t agent_id);
 
   ros::NodeHandle* nh_;
   std::vector<ros::Subscriber> sub_keyframe_;
@@ -135,4 +135,4 @@ protected:
   std::shared_ptr<System> system_;
 };
 
-} // namespace pgbe
+}  // namespace pgbe

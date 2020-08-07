@@ -1,30 +1,31 @@
 /*
-* Copyright (c) 2018, Vision for Robotics Lab
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-* * Redistributions of source code must retain the above copyright
-* notice, this list of conditions and the following disclaimer.
-* * Redistributions in binary form must reproduce the above copyright
-* notice, this list of conditions and the following disclaimer in the
-* documentation and/or other materials provided with the distribution.
-* * Neither the name of the Vision for Robotics Lab, ETH Zurich nor the
-* names of its contributors may be used to endorse or promote products
-* derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-* ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*
-*/
+ * Copyright (c) 2018, Vision for Robotics Lab
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * * Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * * Neither the name of the Vision for Robotics Lab, ETH Zurich nor the
+ * names of its contributors may be used to endorse or promote products
+ * derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
 
 /*
  * parameter-reader.cpp
@@ -37,15 +38,10 @@
 
 namespace pgbe {
 
-ParameterReader::ParameterReader(
-    ros::NodeHandle& nh, const size_t num_agents) :
-  nh_(&nh), num_agents_(num_agents), read_parameters_(false) {
+ParameterReader::ParameterReader(ros::NodeHandle &nh, const size_t num_agents)
+    : nh_(&nh), num_agents_(num_agents), read_parameters_(false) {}
 
-}
-
-ParameterReader::~ParameterReader() {
-
-}
+ParameterReader::~ParameterReader() {}
 
 bool ParameterReader::getParameters(SystemParameters &params) {
   if (read_parameters_) {
@@ -84,9 +80,9 @@ bool ParameterReader::readParameters(SystemParameters &params) {
     // Read the camera configuration file
     CameraParameters cam_params_i(i, file_name_i);
     if (cam_params_i.camera == NULL) {
-       ROS_WARN("[PGB] Could not read parameters for camera %d", i);
-       successful = false;
-       break;
+      ROS_WARN("[PGB] Could not read parameters for camera %d", i);
+      successful = false;
+      break;
     }
     cam_vector.push_back(cam_params_i);
 
@@ -98,8 +94,8 @@ bool ParameterReader::readParameters(SystemParameters &params) {
       successful = false;
       break;
     }
-    const std::string gps_reference_name_i = "gps_reference" +
-        std::to_string(i);
+    const std::string gps_reference_name_i =
+        "gps_reference" + std::to_string(i);
     std::vector<double> gps_reference_i;
     if (!nh_->getParam(gps_reference_name_i, gps_reference_i)) {
       ROS_WARN("[PGB] Parameter '%s' missing", gps_reference_name_i);
@@ -107,8 +103,9 @@ bool ParameterReader::readParameters(SystemParameters &params) {
       break;
     }
     gps_parameters.push_back(GpsParameters(
-        i, Eigen::Vector3d(
-                gps_reference_i[0], gps_reference_i[1], gps_reference_i[2]),
+        i,
+        Eigen::Vector3d(gps_reference_i[0], gps_reference_i[1],
+                        gps_reference_i[2]),
         Eigen::Vector3d(gps_offset_i[0], gps_offset_i[1], gps_offset_i[2])));
 
     const std::string gps_active_name_i = "gps_active_" + std::to_string(i);
@@ -146,19 +143,22 @@ bool ParameterReader::readParameters(SystemParameters &params) {
   }
 
   int loop_detect_min_sac_inliers;
-  if (!nh_->getParam("loop_detect_min_sac_inliers", loop_detect_min_sac_inliers)) {
+  if (!nh_->getParam("loop_detect_min_sac_inliers",
+                     loop_detect_min_sac_inliers)) {
     ROS_WARN("[PGB] Parameter 'loop_detect_min_sac_inliers' missing");
     successful = false;
   }
 
   int loop_detect_min_sac_inv_inliers;
-  if (!nh_->getParam("loop_detect_min_sac_inv_inliers", loop_detect_min_sac_inv_inliers)) {
+  if (!nh_->getParam("loop_detect_min_sac_inv_inliers",
+                     loop_detect_min_sac_inv_inliers)) {
     ROS_WARN("[PGB] Parameter 'loop_detect_min_sac_inv_inliers' missing");
     successful = false;
   }
 
   int loop_detect_min_pose_inliers;
-  if (!nh_->getParam("loop_detect_min_pose_inliers", loop_detect_min_pose_inliers)) {
+  if (!nh_->getParam("loop_detect_min_pose_inliers",
+                     loop_detect_min_pose_inliers)) {
     ROS_WARN("[PGB] Parameter 'loop_detect_min_pose_inliers' missing");
     successful = false;
   }
@@ -200,7 +200,8 @@ bool ParameterReader::readParameters(SystemParameters &params) {
   }
 
   double information_odom_drift_yaw;
-  if (!nh_->getParam("information_odom_drift_yaw", information_odom_drift_yaw)) {
+  if (!nh_->getParam("information_odom_drift_yaw",
+                     information_odom_drift_yaw)) {
     ROS_WARN("[PGB] Parameter 'information_odom_drift_yaw' missing");
     successful = false;
   }
@@ -224,7 +225,8 @@ bool ParameterReader::readParameters(SystemParameters &params) {
   }
 
   double information_odom_edges_yaw;
-  if (!nh_->getParam("information_odom_edges_yaw", information_odom_edges_yaw)) {
+  if (!nh_->getParam("information_odom_edges_yaw",
+                     information_odom_edges_yaw)) {
     ROS_WARN("[PGB] Parameter 'information_odom_edges_yaw' missing");
     successful = false;
   }
@@ -236,7 +238,8 @@ bool ParameterReader::readParameters(SystemParameters &params) {
   }
 
   double information_loop_edges_yaw;
-  if (!nh_->getParam("information_loop_edges_yaw", information_loop_edges_yaw)) {
+  if (!nh_->getParam("information_loop_edges_yaw",
+                     information_loop_edges_yaw)) {
     ROS_WARN("[PGB] Parameter 'information_loop_edges_yaw' missing");
     successful = false;
   }
@@ -253,7 +256,6 @@ bool ParameterReader::readParameters(SystemParameters &params) {
     successful = false;
   }
 
-
   int local_opt_window_size;
   if (!nh_->getParam("local_opt_window_size", local_opt_window_size)) {
     ROS_WARN("[PGB] Parameter 'local_opt_window_size' missing");
@@ -266,38 +268,20 @@ bool ParameterReader::readParameters(SystemParameters &params) {
     successful = false;
   }
 
-
   if (successful) {
     params = SystemParameters(
-      num_agents_,
-      simulation_,
-      cam_vector,
-      gps_parameters, 
-      loop_candidate_min_score,
-      loop_image_min_matches,
-      loop_detect_sac_thresh,
-      loop_detect_sac_max_iter,
-      loop_detect_min_sac_inliers,
-      loop_detect_min_sac_inv_inliers,
-      loop_detect_min_pose_inliers,
-      rel_pose_outlier_norm_min,
-      loop_detect_reset_time,
-      max_loop_candidates,
-      gps_align_num_corr,
-      gps_align_cov_max,
-      loop_detect_skip_kf,
-      information_odom_drift_yaw,
-      information_odom_drift_p,
-      information_odom_map_yaw,
-      information_odom_map_p, 
-      information_odom_edges_yaw,
-      information_odom_edges_p, 
-      information_loop_edges_yaw,
-      information_loop_edges_p,
-      gps_active,
-      ignore_gps_altitude,
-      local_opt_window_size,
-      rel_pose_corr_min);
+        num_agents_, simulation_, cam_vector, gps_parameters,
+        loop_candidate_min_score, loop_image_min_matches,
+        loop_detect_sac_thresh, loop_detect_sac_max_iter,
+        loop_detect_min_sac_inliers, loop_detect_min_sac_inv_inliers,
+        loop_detect_min_pose_inliers, rel_pose_outlier_norm_min,
+        loop_detect_reset_time, max_loop_candidates, gps_align_num_corr,
+        gps_align_cov_max, loop_detect_skip_kf, information_odom_drift_yaw,
+        information_odom_drift_p, information_odom_map_yaw,
+        information_odom_map_p, information_odom_edges_yaw,
+        information_odom_edges_p, information_loop_edges_yaw,
+        information_loop_edges_p, gps_active, ignore_gps_altitude,
+        local_opt_window_size, rel_pose_corr_min);
   } else {
     return successful;
   }
@@ -310,4 +294,4 @@ bool ParameterReader::readParameters(SystemParameters &params) {
   return successful;
 }
 
-} // namespace pgbe
+}  // namespace pgbe

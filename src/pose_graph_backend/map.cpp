@@ -1,30 +1,31 @@
 /*
-* Copyright (c) 2018, Vision for Robotics Lab
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-* * Redistributions of source code must retain the above copyright
-* notice, this list of conditions and the following disclaimer.
-* * Redistributions in binary form must reproduce the above copyright
-* notice, this list of conditions and the following disclaimer in the
-* documentation and/or other materials provided with the distribution.
-* * Neither the name of the Vision for Robotics Lab, ETH Zurich nor the
-* names of its contributors may be used to endorse or promote products
-* derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-* ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*
-*/
+ * Copyright (c) 2018, Vision for Robotics Lab
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * * Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * * Neither the name of the Vision for Robotics Lab, ETH Zurich nor the
+ * names of its contributors may be used to endorse or promote products
+ * derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
 
 /*
  * map.hpp
@@ -37,13 +38,13 @@
 
 namespace pgbe {
 
-Map::Map(const SystemParameters& params,
-         const uint64_t agent_id) :
-    parameters_(params), agent_id_(agent_id),
-    has_init_T_W_M_(false),
-    T_M_O_(Eigen::Matrix4d::Identity()) {
-      merged_agents_.push_back(agent_id);
-      world_anchor_ = false;
+Map::Map(const SystemParameters& params, const uint64_t agent_id)
+    : parameters_(params),
+      agent_id_(agent_id),
+      has_init_T_W_M_(false),
+      T_M_O_(Eigen::Matrix4d::Identity()) {
+  merged_agents_.push_back(agent_id);
+  world_anchor_ = false;
 }
 
 bool Map::addKeyFrame(std::shared_ptr<KeyFrame> kf_ptr) {
@@ -87,8 +88,8 @@ bool Map::addKeyFrame(std::shared_ptr<KeyFrame> kf_ptr) {
   return true;
 }
 
-std::shared_ptr<KeyFrame> Map::getKeyFrame(const Identifier &id) {
-  std::shared_ptr<KeyFrame> requested_kf (NULL);
+std::shared_ptr<KeyFrame> Map::getKeyFrame(const Identifier& id) {
+  std::shared_ptr<KeyFrame> requested_kf(NULL);
   if (id.first != agent_id_) {
     return requested_kf;
     std::cout << "ERROR: getKeyFrame agent_id's don't match" << std::endl;
@@ -104,8 +105,9 @@ std::shared_ptr<KeyFrame> Map::getKeyFrame(const Identifier &id) {
   return requested_kf;
 }
 
-std::vector<std::shared_ptr<KeyFrame>, Eigen::aligned_allocator<
-    std::shared_ptr<KeyFrame>>> Map::getAllKeyFrames() {
+std::vector<std::shared_ptr<KeyFrame>,
+            Eigen::aligned_allocator<std::shared_ptr<KeyFrame>>>
+Map::getAllKeyFrames() {
   std::unique_lock<std::mutex> lock(mutex_);
 
   KFvec keyframes;
@@ -118,9 +120,9 @@ std::vector<std::shared_ptr<KeyFrame>, Eigen::aligned_allocator<
   return keyframes;
 }
 
-std::vector<std::shared_ptr<KeyFrame>, Eigen::aligned_allocator<
-    std::shared_ptr<KeyFrame>>> Map::getMostRecentN(
-    const int&N) {
+std::vector<std::shared_ptr<KeyFrame>,
+            Eigen::aligned_allocator<std::shared_ptr<KeyFrame>>>
+Map::getMostRecentN(const int& N) {
   std::unique_lock<std::mutex> lock(mutex_);
 
   KFvec keyframes;
@@ -152,8 +154,8 @@ std::vector<std::shared_ptr<KeyFrame>, Eigen::aligned_allocator<
   return recent_keyframes;
 }
 
-void Map::setWorldTransformation(const Eigen::Matrix4d &T_W_M,
-                                 const Eigen::Matrix4d &covariance) {
+void Map::setWorldTransformation(const Eigen::Matrix4d& T_W_M,
+                                 const Eigen::Matrix4d& covariance) {
   std::lock_guard<std::mutex> lock(mutex_);
   has_init_T_W_M_ = true;
   T_W_M_ = T_W_M;
@@ -164,18 +166,18 @@ void Map::writePosesToFile(const std::string& filename) {
   std::lock_guard<std::mutex> lock(mutex_);
   std::ofstream file;
   file.open(filename);
-  const Eigen::Quaterniond q_W_M(T_W_M_.block<3,3>(0, 0));
-  const Eigen::Vector3d p_W_M = T_W_M_.block<3,1>(0, 3);
-  
+  const Eigen::Quaterniond q_W_M(T_W_M_.block<3, 3>(0, 0));
+  const Eigen::Vector3d p_W_M = T_W_M_.block<3, 1>(0, 3);
+
   file << q_W_M.w() << "," << q_W_M.x() << "," << q_W_M.y() << ",";
-    file << q_W_M.z() << '\n';
+  file << q_W_M.z() << '\n';
   for (auto itr = keyframe_id_map_.begin(); itr != keyframe_id_map_.end();
        ++itr) {
     std::shared_ptr<KeyFrame> keyframe_i = itr->second;
     const double timestamp = keyframe_i->getTimestamp();
     const Eigen::Matrix4d T_M_Si = keyframe_i->getOptimizedPose();
-    const Eigen::Quaterniond q_M_Si(T_M_Si.block<3,3>(0, 0));
-    const Eigen::Vector3d p_M_Si = T_M_Si.block<3,1>(0, 3);
+    const Eigen::Quaterniond q_M_Si(T_M_Si.block<3, 3>(0, 0));
+    const Eigen::Vector3d p_M_Si = T_M_Si.block<3, 1>(0, 3);
     file << std::setprecision(25) << timestamp << ",";
     file << p_M_Si(0) << "," << p_M_Si(1) << "," << p_M_Si(2) << ",";
     file << q_M_Si.w() << "," << q_M_Si.x() << "," << q_M_Si.y() << ",";
@@ -188,9 +190,9 @@ void Map::writeOdomPosesToFile(const std::string& filename) {
   std::lock_guard<std::mutex> lock(mutex_);
   std::ofstream file;
   file.open(filename, std::ios_base::app);
-  const Eigen::Quaterniond q_M_O(T_M_O_.block<3,3>(0, 0));
-  const Eigen::Vector3d p_M_O = T_M_O_.block<3,1>(0, 3);
-  
+  const Eigen::Quaterniond q_M_O(T_M_O_.block<3, 3>(0, 0));
+  const Eigen::Vector3d p_M_O = T_M_O_.block<3, 1>(0, 3);
+
   file << std::setprecision(25);
   file << p_M_O(0) << "," << p_M_O(1) << "," << p_M_O(2) << ",";
   file << q_M_O.w() << "," << q_M_O.x() << "," << q_M_O.y() << ",";
@@ -202,24 +204,24 @@ void Map::writePosesToFileInWorld(const std::string& filename) {
   std::lock_guard<std::mutex> lock(mutex_);
   std::ofstream file;
   file.open(filename);
-  const Eigen::Quaterniond q_W_M(T_W_M_.block<3,3>(0, 0));
-  const Eigen::Vector3d p_W_M = T_W_M_.block<3,1>(0, 3);
+  const Eigen::Quaterniond q_W_M(T_W_M_.block<3, 3>(0, 0));
+  const Eigen::Vector3d p_W_M = T_W_M_.block<3, 1>(0, 3);
 
-  const Eigen::Quaterniond q_M_O(T_M_O_.block<3,3>(0, 0));
-  const Eigen::Vector3d p_M_O = T_M_O_.block<3,1>(0, 3);
-  file << p_W_M(0) << "," << p_W_M(1) << "," << p_W_M(2) << "," << q_W_M.w() << 
-  "," << q_W_M.x() << "," << q_W_M.y() << "," << q_W_M.z() << std::endl;
-  file << p_M_O(0) << "," << p_M_O(1) << "," << p_M_O(2) << "," << q_M_O.w() << 
-  "," << q_M_O.x() << "," << q_M_O.y() << "," << q_M_O.z() << std::endl;
+  const Eigen::Quaterniond q_M_O(T_M_O_.block<3, 3>(0, 0));
+  const Eigen::Vector3d p_M_O = T_M_O_.block<3, 1>(0, 3);
+  file << p_W_M(0) << "," << p_W_M(1) << "," << p_W_M(2) << "," << q_W_M.w()
+       << "," << q_W_M.x() << "," << q_W_M.y() << "," << q_W_M.z() << std::endl;
+  file << p_M_O(0) << "," << p_M_O(1) << "," << p_M_O(2) << "," << q_M_O.w()
+       << "," << q_M_O.x() << "," << q_M_O.y() << "," << q_M_O.z() << std::endl;
   for (auto itr = keyframe_id_map_.begin(); itr != keyframe_id_map_.end();
        ++itr) {
     std::shared_ptr<KeyFrame> keyframe_i = itr->second;
     const double timestamp = keyframe_i->getTimestamp();
     const Eigen::Matrix4d T_M_Si = keyframe_i->getOptimizedPose();
-    const Eigen::Matrix4d T_W_Si = T_W_M_*T_M_Si;
+    const Eigen::Matrix4d T_W_Si = T_W_M_ * T_M_Si;
 
-    const Eigen::Quaterniond q_W_Si(T_W_Si.block<3,3>(0, 0));
-    const Eigen::Vector3d p_W_Si = T_W_Si.block<3,1>(0, 3);
+    const Eigen::Quaterniond q_W_Si(T_W_Si.block<3, 3>(0, 0));
+    const Eigen::Vector3d p_W_Si = T_W_Si.block<3, 1>(0, 3);
     file << std::setprecision(25);
     file << timestamp << ",";
     file << p_W_Si(0) << "," << p_W_Si(1) << "," << p_W_Si(2) << ",";
@@ -230,11 +232,10 @@ void Map::writePosesToFileInWorld(const std::string& filename) {
 }
 
 void Map::addMergedAgents(uint64_t merged_id) {
-  if (std::find(merged_agents_.begin(), merged_agents_.end(), merged_id)
-     == merged_agents_.end()) {
+  if (std::find(merged_agents_.begin(), merged_agents_.end(), merged_id) ==
+      merged_agents_.end()) {
     merged_agents_.push_back(merged_id);
-     }
+  }
 }
 
-} // namespace pgbe
-
+}  // namespace pgbe

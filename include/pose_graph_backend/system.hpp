@@ -1,30 +1,31 @@
 /*
-* Copyright (c) 2018, Vision for Robotics Lab
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-* * Redistributions of source code must retain the above copyright
-* notice, this list of conditions and the following disclaimer.
-* * Redistributions in binary form must reproduce the above copyright
-* notice, this list of conditions and the following disclaimer in the
-* documentation and/or other materials provided with the distribution.
-* * Neither the name of the Vision for Robotics Lab, ETH Zurich nor the
-* names of its contributors may be used to endorse or promote products
-* derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-* ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*
-*/
+ * Copyright (c) 2018, Vision for Robotics Lab
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * * Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * * Neither the name of the Vision for Robotics Lab, ETH Zurich nor the
+ * names of its contributors may be used to endorse or promote products
+ * derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
 
 /*
  * system.hpp
@@ -35,90 +36,96 @@
 
 #pragma once
 
-#include <deque>
-#include <memory>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
 #include <atomic>
+#include <condition_variable>
+#include <deque>
 #include <functional>
+#include <memory>
+#include <mutex>
+#include <thread>
 
 #include <ros/ros.h>
 #include <Eigen/Core>
-#include <Eigen/Geometry>
 #include <Eigen/Dense>
+#include <Eigen/Geometry>
 
-#include <comm_msgs/keyframe.h>
 #include <comm_msgs/fused_pcl.h>
+#include <comm_msgs/keyframe.h>
+#include <nav_msgs/Path.h>
+#include <pcl/common/transforms.h>
+#include <pcl_conversions/pcl_conversions.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <geodetic_utils/geodetic_conv.hpp>
-#include <nav_msgs/Path.h>
-#include <pcl_conversions/pcl_conversions.h>
-#include <pcl/common/transforms.h>
 
-#include "threadsafe/ThreadsafeQueue.hpp"
-#include "parameters.hpp"
 #include "measurements.hpp"
-#include "pose_graph_backend/keyframe.hpp"
+#include "parameters.hpp"
 #include "pose_graph_backend/keyframe-database.hpp"
-#include "pose_graph_backend/map.hpp"
+#include "pose_graph_backend/keyframe.hpp"
 #include "pose_graph_backend/loop-detection.hpp"
-
+#include "pose_graph_backend/map.hpp"
+#include "threadsafe/ThreadsafeQueue.hpp"
 
 /// \brief pgbe The main namespace of this package.
 namespace pgbe {
 
 struct KeyFrameFull {
-    comm_msgs::keyframeConstPtr keyframe;
-    sensor_msgs::PointCloud2::ConstPtr pointcloud;
+  comm_msgs::keyframeConstPtr keyframe;
+  sensor_msgs::PointCloud2::ConstPtr pointcloud;
 };
 
 class System {
-public:
+ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   // Useful typedefs for this class
   typedef okvis::threadsafe::ThreadSafeQueue<comm_msgs::keyframeConstPtr>
-          KeyFrameMsgQueue;
+      KeyFrameMsgQueue;
   typedef std::shared_ptr<KeyFrameMsgQueue> KeyFrameMsgQueuePtr;
   typedef okvis::threadsafe::ThreadSafeQueue<nav_msgs::OdometryConstPtr>
-          OdometryMsgQueue;
+      OdometryMsgQueue;
   typedef std::shared_ptr<OdometryMsgQueue> OdometryMsgQueuePtr;
   typedef okvis::threadsafe::ThreadSafeQueue<sensor_msgs::PointCloud2ConstPtr>
-          PclMsgQueue;
+      PclMsgQueue;
   typedef std::shared_ptr<PclMsgQueue> PclMsgQueuePtr;
   typedef okvis::threadsafe::ThreadSafeQueue<sensor_msgs::NavSatFixConstPtr>
-          GpsMsgQueue;
+      GpsMsgQueue;
   typedef std::shared_ptr<GpsMsgQueue> GpsMsgQueuePtr;
-  typedef okvis::threadsafe::ThreadSafeQueue<std::shared_ptr<
-      KeyFrame>> KeyFrameQueue;
+  typedef okvis::threadsafe::ThreadSafeQueue<std::shared_ptr<KeyFrame>>
+      KeyFrameQueue;
   typedef std::shared_ptr<KeyFrameQueue> KeyFrameQueuePtr;
-  typedef okvis::threadsafe::ThreadSafeQueue<Result>
-        ResultQueue;
+  typedef okvis::threadsafe::ThreadSafeQueue<Result> ResultQueue;
   typedef std::shared_ptr<ResultQueue> ResultQueuePtr;
 
   typedef okvis::threadsafe::ThreadSafeQueue<comm_msgs::fused_pclConstPtr>
-          FusedPclMsgQueue;
+      FusedPclMsgQueue;
   typedef std::shared_ptr<FusedPclMsgQueue> FusedPclMsgQueuePtr;
   typedef std::deque<comm_msgs::fused_pclConstPtr> FusedPclMsgDequeue;
 
   // Callback typedefs (for publishing)
-  typedef std::function<void (double t, const uint64_t agent_id,
-      const Result& result)> FullCallback;
+  typedef std::function<void(double t, const uint64_t agent_id,
+                             const Result& result)>
+      FullCallback;
 
-  typedef std::function<void (double t, const uint64_t agent_id,
-      const Eigen::Matrix4d&, const Eigen::Matrix4d&, const Eigen::Matrix4d&)> TransformCallback;
+  typedef std::function<void(double t, const uint64_t agent_id,
+                             const Eigen::Matrix4d&, const Eigen::Matrix4d&,
+                             const Eigen::Matrix4d&)>
+      TransformCallback;
 
-  typedef std::function<void (nav_msgs::Path& msg_path, const uint64_t agent_id)> PathCallback;
+  typedef std::function<void(nav_msgs::Path& msg_path, const uint64_t agent_id)>
+      PathCallback;
 
-  typedef std::function<void (const uint64_t agent_id, const double &timestamp, 
-        const Eigen::Matrix4d T_W_C)> CamVizCallback;
+  typedef std::function<void(const uint64_t agent_id, const double& timestamp,
+                             const Eigen::Matrix4d T_W_C)>
+      CamVizCallback;
 
-  typedef std::function<void (const uint64_t agent_id, const double &timestamp,
-      const pcl::PointCloud<pcl::PointXYZRGB>::Ptr fused_pcl_cloud, const Eigen::Matrix4d& T_W_C)> FusedPCLCallback;
+  typedef std::function<void(
+      const uint64_t agent_id, const double& timestamp,
+      const pcl::PointCloud<pcl::PointXYZRGB>::Ptr fused_pcl_cloud,
+      const Eigen::Matrix4d& T_W_C)>
+      FusedPCLCallback;
 
   /// \brief Empty constructor
-  System() {};
+  System(){};
   ~System();
 
   /// \brief Constructor
@@ -149,7 +156,7 @@ public:
     cam_viz_callback_ = callback;
   }
 
-   /// \brief Set the fused pointcloud callback.
+  /// \brief Set the fused pointcloud callback.
   /// @param callback The callback function.
   void setFusedPCLCallback(const FusedPCLCallback& callback) {
     fused_pcl_callback_ = callback;
@@ -178,21 +185,21 @@ public:
   void addGpsMsg(const sensor_msgs::NavSatFixConstPtr& gps_msg,
                  const uint64_t agent_id);
 
-  /// \brief Add a new fused pointcloud message to be stored. 
+  /// \brief Add a new fused pointcloud message to be stored.
   /// @param fused_pcl_msg The new fused pointcloud message.
   /// @param agent_id The id from which agent it came from.
-  void addFusedPointCloudMsg(const comm_msgs::fused_pclConstPtr &fused_pcl_msg,
-    const uint64_t agent_id);
+  void addFusedPointCloudMsg(const comm_msgs::fused_pclConstPtr& fused_pcl_msg,
+                             const uint64_t agent_id);
 
-
-  /// \brief Add a new fused pointcloud message to be stored. 
-  /// @param gps_measurement The gps_measurement we are attempting to sync and align.
+  /// \brief Add a new fused pointcloud message to be stored.
+  /// @param gps_measurement The gps_measurement we are attempting to sync and
+  /// align.
   /// @param agent_id The id from which agent it came from.
   /// @param close_odoms The close odometry measurements that we can sync GPS to
   void syncAndAlignGPS(const uint64_t agent_id, GPSmeasurement& gps_measurement,
                        OdomMeasurementQueue& close_odoms);
 
-protected:
+ protected:
   /// \brief Initialize the system and start the threads
   void init();
 
@@ -218,43 +225,42 @@ protected:
   /// @param end_time The upper time boarder.
   /// @param agent_id The id for which it is requested.
   /// @return The GPS measurements queue, empty if no measurements.
-  GPSmeasurementQueue getGPSmeasurements(
-      const double& start_time, const double& end_time,
-      const uint64_t agent_id);
+  GPSmeasurementQueue getGPSmeasurements(const double& start_time,
+                                         const double& end_time,
+                                         const uint64_t agent_id);
 
   /// \brief Get all odometry measurements within a time horizon.
   /// @param start_time The lower time boarder.
   /// @param end_time The upper time boarder.
   /// @param agent_id The id for which it is requested.
   /// @return The Odometry measurements queue, empty if no measurements.
-  OdomMeasurementQueue getOdomMeasurements(
-      const double& start_time, const double& end_time,
-      const uint64_t agent_id);
+  OdomMeasurementQueue getOdomMeasurements(const double& start_time,
+                                           const double& end_time,
+                                           const uint64_t agent_id);
 
   /// \brief Get all combined GPS/odom measurements within a time horizon.
   /// @param start_time The lower time boarder.
   /// @param end_time The upper time boarder.
   /// @param agent_id The id for which it is requested.
   /// @return The combined measurements queue, empty if no measurements.
-  OdomGPScombinedQueue getCombinedMeasurement(
-      const double& start_time, const double& end_time,
-      const uint64_t agent_id);
+  OdomGPScombinedQueue getCombinedMeasurement(const double& start_time,
+                                              const double& end_time,
+                                              const uint64_t agent_id);
 
   /// \brief Get all combined PCL/odom measurements within a time horizon.
   /// @param start_time The lower time boarder.
   /// @param end_time The upper time boarder.
   /// @param agent_id The id for which it is requested.
   /// @return The combined measurements queue, empty if no measurements.
-  OdomPclCombinedQueue getCombinedPclMeasurement(
-      const double& start_time, const double& end_time,
-      const uint64_t agent_id);
+  OdomPclCombinedQueue getCombinedPclMeasurement(const double& start_time,
+                                                 const double& end_time,
+                                                 const uint64_t agent_id);
 
   /// \brief Clear all GPS measurements until the given time.
   /// @param clear_until The timestamp.
   /// @param agent_id The id for which the action should be performed.
   /// @return The number of cleared measurements.
-  int deleteGpsMeasurements(const double& clear_until,
-                            const uint64_t agent_id);
+  int deleteGpsMeasurements(const double& clear_until, const uint64_t agent_id);
 
   /// \brief Clear all odometry measurements until the given time.
   /// @param clear_until The timestamp.
@@ -267,9 +273,7 @@ protected:
   /// @param clear_until The timestamp.
   /// @param agent_id The id for which the action should be performed.
   /// @return The number of cleared measurements.
-  int deletePclMeasurements(const double& clear_until,
-                            const uint64_t agent_id);
-
+  int deletePclMeasurements(const double& clear_until, const uint64_t agent_id);
 
   /// \brief Clear all combined measurements until the given time.
   /// @param clear_until The timestamp.
@@ -283,7 +287,7 @@ protected:
   /// @param agent_id The id for which the action should be performed.
   /// @return The number of cleared measurements.
   int deleteCombinedPclMeasurements(const double& clear_until,
-                                 const uint64_t agent_id);
+                                    const uint64_t agent_id);
 
   /// \brief Update the agent's path for visualization
   /// @param agent_id The id of the agent to update the path
@@ -299,21 +303,23 @@ protected:
   std::shared_ptr<KeyFrameDatabase> database_;
 
   // Store the maps
-  std::vector<std::shared_ptr<Map>, Eigen::aligned_allocator<
-      std::shared_ptr<Map>>> maps_;
+  std::vector<std::shared_ptr<Map>,
+              Eigen::aligned_allocator<std::shared_ptr<Map>>>
+      maps_;
 
   // Only for initialization: Store whether or not the initial optimization
   // should be triggered
   std::vector<double> trigger_init_opt_;
 
   // Store the loop-detectors
-  std::vector<std::shared_ptr<LoopDetection>, Eigen::aligned_allocator<
-      std::shared_ptr<LoopDetection>>> loop_detectors_;
+  std::vector<std::shared_ptr<LoopDetection>,
+              Eigen::aligned_allocator<std::shared_ptr<LoopDetection>>>
+      loop_detectors_;
   std::vector<double> last_loop_closure_;
 
   // GPS-to local plane conversion
   std::vector<std::shared_ptr<geodetic_converter::GeodeticConverter>>
-    gps_converters_;
+      gps_converters_;
 
   // Measurement preparation threads
   std::vector<std::thread> keyframe_consumer_threads_;
@@ -335,15 +341,14 @@ protected:
   std::vector<FusedPclMsgQueuePtr> fused_pcl_msgs_received_;
   std::vector<FusedPclMsgDequeue> fused_pcl_msgs_buffer_;
   // ResultQueuePtr pub_msgs_received_;
-  
+
   // Processed queues
   std::vector<KeyFrameQueuePtr> keyframes_received_;
 
   // Temporary Queue to allow delayed processing of keyframes
   std::vector<std::deque<std::shared_ptr<KeyFrame>,
-      Eigen::aligned_allocator<std::shared_ptr<KeyFrame>>>>
-    keyframe_buffers_;
-
+                         Eigen::aligned_allocator<std::shared_ptr<KeyFrame>>>>
+      keyframe_buffers_;
 
   // Queues for raw measurements
   std::vector<OdomMeasurementQueue> odom_queues_;
@@ -380,4 +385,4 @@ protected:
   FusedPCLCallback fused_pcl_callback_;
 };
 
-} // namespace pgbe
+}  // namespace pgbe
