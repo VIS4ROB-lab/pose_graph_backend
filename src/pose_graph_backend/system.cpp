@@ -121,7 +121,7 @@ void System::init() {
   for (size_t i = 0; i < parameters_.num_agents; ++i) {
     maps_.emplace_back(std::shared_ptr<Map>(new Map(parameters_, i)));
     maps_[i]->setGPSStatus(parameters_.gps_active[i]); // Embed this into the map initialization
-    std::cout << i << " has gps status: " << maps_[i]->getGPSStatus() << std::endl;
+    ROS_INFO_STREAM("[PGB] Agent " << i << " has gps status: " << maps_[i]->getGPSStatus());
     optimization_flags_[i] = new bool;
     *optimization_flags_[i] = false;
   }

@@ -67,6 +67,7 @@ bool ParameterReader::readParameters(SystemParameters &params) {
 
   bool simulation_ = false;
   if (!nh_->getParam("simulation", simulation_)) {
+    ROS_WARN("[PGB] Parameter 'simulation' missing");
     successful = false;
   }
 
@@ -75,6 +76,7 @@ bool ParameterReader::readParameters(SystemParameters &params) {
     const std::string param_name_i = "cam_config" + std::to_string(i);
     std::string file_name_i;
     if (!nh_->getParam(param_name_i, file_name_i)) {
+      ROS_WARN("[PGB] Parameter '%s' missing", param_name_i);
       successful = false;
       break;
     }
@@ -82,6 +84,7 @@ bool ParameterReader::readParameters(SystemParameters &params) {
     // Read the camera configuration file
     CameraParameters cam_params_i(i, file_name_i);
     if (cam_params_i.camera == NULL) {
+       ROS_WARN("[PGB] Could not read parameters for camera %d", i);
        successful = false;
        break;
     }
@@ -91,6 +94,7 @@ bool ParameterReader::readParameters(SystemParameters &params) {
     const std::string gps_offset_name_i = "gps_offset" + std::to_string(i);
     std::vector<double> gps_offset_i;
     if (!nh_->getParam(gps_offset_name_i, gps_offset_i)) {
+      ROS_WARN("[PGB] Parameter '%s' missing", gps_offset_name_i);
       successful = false;
       break;
     }
@@ -98,6 +102,7 @@ bool ParameterReader::readParameters(SystemParameters &params) {
         std::to_string(i);
     std::vector<double> gps_reference_i;
     if (!nh_->getParam(gps_reference_name_i, gps_reference_i)) {
+      ROS_WARN("[PGB] Parameter '%s' missing", gps_reference_name_i);
       successful = false;
       break;
     }
@@ -109,6 +114,7 @@ bool ParameterReader::readParameters(SystemParameters &params) {
     const std::string gps_active_name_i = "gps_active_" + std::to_string(i);
     bool gps_active_i = false;
     if (!nh_->getParam(gps_active_name_i, gps_active_i)) {
+      ROS_WARN("[PGB] Parameter '%s' missing", gps_active_name_i);
       successful = false;
     }
     gps_active.push_back(gps_active_i);
@@ -117,122 +123,146 @@ bool ParameterReader::readParameters(SystemParameters &params) {
   // Read loop detection performance parameters
   double loop_candidate_min_score;
   if (!nh_->getParam("loop_candidate_min_score", loop_candidate_min_score)) {
+    ROS_WARN("[PGB] Parameter 'loop_candidate_min_score' missing");
     successful = false;
   }
 
   int loop_image_min_matches;
   if (!nh_->getParam("loop_image_min_matches", loop_image_min_matches)) {
+    ROS_WARN("[PGB] Parameter 'loop_image_min_matches' missing");
     successful = false;
   }
 
   int loop_detect_sac_thresh;
   if (!nh_->getParam("loop_detect_sac_thresh", loop_detect_sac_thresh)) {
+    ROS_WARN("[PGB] Parameter 'loop_detect_sac_thresh' missing");
     successful = false;
   }
 
   int loop_detect_sac_max_iter;
   if (!nh_->getParam("loop_detect_sac_max_iter", loop_detect_sac_max_iter)) {
+    ROS_WARN("[PGB] Parameter 'loop_detect_sac_max_iter' missing");
     successful = false;
   }
 
   int loop_detect_min_sac_inliers;
   if (!nh_->getParam("loop_detect_min_sac_inliers", loop_detect_min_sac_inliers)) {
+    ROS_WARN("[PGB] Parameter 'loop_detect_min_sac_inliers' missing");
     successful = false;
   }
 
   int loop_detect_min_sac_inv_inliers;
   if (!nh_->getParam("loop_detect_min_sac_inv_inliers", loop_detect_min_sac_inv_inliers)) {
+    ROS_WARN("[PGB] Parameter 'loop_detect_min_sac_inv_inliers' missing");
     successful = false;
   }
 
   int loop_detect_min_pose_inliers;
   if (!nh_->getParam("loop_detect_min_pose_inliers", loop_detect_min_pose_inliers)) {
+    ROS_WARN("[PGB] Parameter 'loop_detect_min_pose_inliers' missing");
     successful = false;
   }
 
   double rel_pose_outlier_norm_min;
   if (!nh_->getParam("rel_pose_outlier_norm_min", rel_pose_outlier_norm_min)) {
+    ROS_WARN("[PGB] Parameter 'rel_pose_outlier_norm_min' missing");
     successful = false;
   }
 
   double loop_detect_reset_time;
   if (!nh_->getParam("loop_detect_reset_time", loop_detect_reset_time)) {
+    ROS_WARN("[PGB] Parameter 'loop_detect_reset_time' missing");
     successful = false;
   }
 
   int max_loop_candidates;
   if (!nh_->getParam("max_loop_candidates", max_loop_candidates)) {
+    ROS_WARN("[PGB] Parameter 'max_loop_candidates' missing");
     successful = false;
   }
 
   int gps_align_num_corr;
   if (!nh_->getParam("gps_align_num_corr", gps_align_num_corr)) {
+    ROS_WARN("[PGB] Parameter 'gps_align_num_corr' missing");
     successful = false;
   }
 
   double gps_align_cov_max;
   if (!nh_->getParam("gps_align_cov_max", gps_align_cov_max)) {
+    ROS_WARN("[PGB] Parameter 'gps_align_cov_max' missing");
     successful = false;
   }
 
   int loop_detect_skip_kf;
   if (!nh_->getParam("loop_detect_skip_kf", loop_detect_skip_kf)) {
+    ROS_WARN("[PGB] Parameter 'loop_detect_skip_kf' missing");
     successful = false;
   }
 
   double information_odom_drift_yaw;
   if (!nh_->getParam("information_odom_drift_yaw", information_odom_drift_yaw)) {
+    ROS_WARN("[PGB] Parameter 'information_odom_drift_yaw' missing");
     successful = false;
   }
 
   double information_odom_drift_p;
   if (!nh_->getParam("information_odom_drift_p", information_odom_drift_p)) {
+    ROS_WARN("[PGB] Parameter 'information_odom_drift_p' missing");
     successful = false;
   }
 
   double information_odom_map_yaw;
   if (!nh_->getParam("information_odom_map_yaw", information_odom_map_yaw)) {
+    ROS_WARN("[PGB] Parameter 'information_odom_map_yaw' missing");
     successful = false;
   }
 
   double information_odom_map_p;
   if (!nh_->getParam("information_odom_map_p", information_odom_map_p)) {
+    ROS_WARN("[PGB] Parameter 'information_odom_map_p' missing");
     successful = false;
   }
 
   double information_odom_edges_yaw;
   if (!nh_->getParam("information_odom_edges_yaw", information_odom_edges_yaw)) {
+    ROS_WARN("[PGB] Parameter 'information_odom_edges_yaw' missing");
     successful = false;
   }
 
   double information_odom_edges_p;
   if (!nh_->getParam("information_odom_edges_p", information_odom_edges_p)) {
+    ROS_WARN("[PGB] Parameter 'information_odom_edges_p' missing");
     successful = false;
   }
 
   double information_loop_edges_yaw;
   if (!nh_->getParam("information_loop_edges_yaw", information_loop_edges_yaw)) {
+    ROS_WARN("[PGB] Parameter 'information_loop_edges_yaw' missing");
     successful = false;
   }
 
   double information_loop_edges_p;
   if (!nh_->getParam("information_loop_edges_p", information_loop_edges_p)) {
+    ROS_WARN("[PGB] Parameter 'information_loop_edges_p' missing");
     successful = false;
   }
 
   bool ignore_gps_altitude;
   if (!nh_->getParam("ignore_gps_altitude", ignore_gps_altitude)) {
+    ROS_WARN("[PGB] Parameter 'ignore_gps_altitude' missing");
     successful = false;
   }
 
 
   int local_opt_window_size;
   if (!nh_->getParam("local_opt_window_size", local_opt_window_size)) {
+    ROS_WARN("[PGB] Parameter 'local_opt_window_size' missing");
     successful = false;
   }
 
   int rel_pose_corr_min;
   if (!nh_->getParam("rel_pose_corr_min", rel_pose_corr_min)) {
+    ROS_WARN("[PGB] Parameter 'rel_pose_corr_min' missing");
     successful = false;
   }
 
