@@ -1,176 +1,153 @@
-POSE_GRAPH_BACKEND
+Pose Graph Backend
 ==================
-Repository for multi-agent sensor fusion.
+This repository contains an optimization-based pose-graph backend for multi-agent sensor fusion. This repository is used in a wider framework for multi-robot path planning, available [here](https://github.com/VIS4ROB-lab/multi_robot_coordination).  
+If you use this code in your academic work, please cite:  
+_"Multi-robot Coordination with Agent-Server Architecture for Autonomous Navigation in Partially Unknown Environments"_ by Luca Bartolomei, Marco Karrer and Margarita Chli, IROS 2020.  
 
-### Installation ###
-Assuming you have a fully setup Ubuntu 16.04 distribution 
-with a ROS-Kinetic installation and an initialized workspace, 
-you need to install the following dependencies:
-
-* catkin_simple :
-
-        git clone https://github.com/catkin/catkin_simple.git
-
-* comm_msgs : 
-        
-        git clone https://github.com/karrerm/comm_msgs.git
-      
-* eigen_catkin :
-
-        git clone https://github.com/ethz-asl/eigen_catkin.git
-        
-* suitesparse :
-
-        git clone https://github.com/ethz-asl/suitesparse
-        
-* glog_catkin :
-
-        git clone https://github.com/ethz-asl/glog_catkin
-
-* gflags_catkin :
-
-        git clone https://github.com/ethz-asl/gflags_catkin
-        
-* ceres_catkin :
-
-        git clone https://github.com/ethz-asl/ceres_catkin.git
-        
-* opencv3_catkin :
-
-        git clone https://github.com/ethz-asl/opencv3_catkin.git
-        
-* ethzasl_brisk :
-
-        git clone https://github.com/ethz-asl/ethzasl_brisk.git
-        
-* aslam_cv2 (here actually only aslam_cv and aslam_cameras are needed) :
-
-        git clone https://github.com/ethz-asl/aslam_cv2.git
-        
-* geodetic_utils :
-
-        git clone https://github.com/ethz-asl/geodetic_utils.git
-        
-* opengv :
-   
-        git clone https://github.com/ethz-asl/opengv.git
-        
-* robopt :
-
-        git clone https://github.com/VIS4ROB-lab/robopt.git
-        
-* planner_msgs :
-        
-        git clone ???
-       
-# pose_graph_backend
-Loop Closure backend for Collaborative Keyframe based VIO.
-
-This was built as part of a Collaborative SLAM client-server framework consisting of the following software packages:
-* Client (On Board UAV):
-  * vins_client_server (multi-agent branch: https://github.com/VIS4ROB-lab/vins_client_server/tree/feature/multi_agent)
-  * image_undistort (https://github.com/ethz-asl/image_undistort)
-  * pcl_fusion (https://github.com/btearle/pcl_fusion)
+## Overview ##
+This sensor fusion framework is built as part of a Collaborative SLAM client-server framework consisting of the following software packages:
+* Client's side (Onboard the UAV):
+  * `vins_client_server` - [link](https://github.com/VIS4ROB-lab/vins_client_server)
+  * `image_undistort` - [link](https://github.com/ethz-asl/image_undistort)
+  * `pcl_fusion` - [link](https://github.com/VIS4ROB-lab/pcl_fusion)
   
-* Server (Backend PC):
-  * pose_graph_backend (multi-agent branch)
-  * Voxblox (multi-agent fork: https://github.com/btearle/voxblox/tree/devel/multi-agent)
-  * comm_msgs (multi-agent branch: https://github.com/karrerm/comm_msgs/tree/devel/multi-agent)
+* Server's (Backend PC):
+  * `pose_graph_backend` - this repository
+  * `Multi-agent Voxblox` - [link](https://github.com/VIS4ROB-lab/voxblox_multi_agent)
+  * `comm_msgs` - [link](https://github.com/VIS4ROB-lab/comm_msgs)
   
-All the above must be installed to test the full system. This was developed and verified in ROS Kinetic on Ubuntu 16.04.
+All the above must be installed to test the full system. This was developed and verified in ROS Melodic on Ubuntu 18.04 LTS.
+
+## Installation ##
+This software has been tested under Ubuntu 18.04 LTS and ROS Melodic. Here we assume that ROS has been properly installed.  
+First, install these dependencies:
+```
+$ sudo apt-get install python-catkin-tools python-wstool libeigen3-dev
+```  
+
+Then, create a catkin workspace:
+```
+$ mkdir -p catkin_ws/src
+$ cd catkin_ws
+```
+Set-up the workspace:
+```
+$ catkin init
+$ catkin config --extend /opt/ros/melodic
+$ catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release
+$ catkin config --merge-devel
+```
+
+Clone the dependencies:
+```
+$ cd ~/catkin_ws/src
+$ wstool init
+$ wstool merge pose_graph_backend/dependencies_ssh.rosinstall # To clone with https: pose_graph_backend/dependencies_https.rosinstall
+$ wstool up -j8
+```  
+
+Finally, build the workspace:
+```
+$ cd ~/catkin_ws
+$ catkin build
+```  
 
 ## Topics ##
-The following are the ros topics the pose graph backend node subscribes to. The X represents the x-th agent:
-* /keyframeX - custom keyframe message described in comm_msgs sent by pose graph node in vins_client_server
-* /odometryX - current odometry estimate sent by vins_client_server
-* /gpsX - GPS measurement directly from sensor
-* /fused_pclX - custom pointcloud message described in comm_msgs sent by pcl fusion node
-* /fake_gps2_X - leica laser measurement data used in Euroc dataset to simulate GPS messages
+The following are the ROS topics the Pose Graph backend node subscribes to. The X represents the x-th agent:
+* `/keyframeX` - custom keyframe message described in `comm_msgs` sent by `pose graph` node in `vins_client_server`.
+* `/odometryX` - current odometry estimate sent by `vins_client_server`.
+* `/gpsX` - GPS measurement directly from sensor.
+* `/fused_pclX` - custom pointcloud message described in comm_msgs sent by pcl fusion node.
+* `/fake_gps2_X` - Leica laser measurement data used in EuRoC dataset to simulate GPS messages.
 
-The following are published by pose graph backend:
-* /pcl_transformX - pointcloud and its world frame pose, described in comm_msgs
-* /pathX - RVIZ trajectory estimae
-* /camera_pose_visualX - RVIZ camera visualization
+The following are published by Pose Graph backend:
+* `/pcl_transformX` - pointcloud and its world frame pose, described in `comm_msgs`.
+* `/pathX` - RVIZ trajectory estimate.
+* `/camera_pose_visualX` - RVIZ camera visualization.
 
 ## Parameters ##
-* gps_align_num_corr - number of required GPS-odometry correspondences to start initial GPS alignment.
-* gps_align_cov_max - the threshold that the covariance of the initial GPS alignment must be under for acceptance. Increase this is there is an issue with GPS initialization (system requires this for active gps agents)
-* rel_pose_corr_min - minimum required number of correspondences following a loop detection relative pose optimization needed to accept the loop closure.
-* rel_pose_outlier_norm_min - norm residual value that a residual of the loop detection relative pose optimization must be above in order to consider that residual an "outlier" and remove it from the following optimization
-* local_opt_window_size - size of the window of recent keyframes for sliding window local pose graph optimization
-* loop_image_min_matches - minimum keypoint matches in an image to continue with loop closure candidate
-* loop_detect_sac_thresh - threshold for classifying a point as an inlier in RANSAC 3D-2D P3P in loop detection. Lower value is a stricter condition.
-* loop_detect_sac_max_iter - max number of iterations for the RANSAC 3D-2D P3P in loop detection
-* loop_detect_min_sac_inliers - minimum number of inliers of RANSAC 3D-2D P3P in loop detection to continue with loop closure candidate
-* loop_detect_min_sac_inv_inliers - minimum number of inliers of the INVERSE RANSAC 3D-2D P3P in loop detection to continue with loop closure candidate
-* loop_detect_min_pose_inliers - the final threshold of inliers from the relative pose graph optimization of the loop detection process to verify loop closure.
-* loop_detect_reset_time - the amount of time following a loop closure where no new loop closures are looked for for that agent
-* loop_detect_skip_kf - number of keyframes to skip loop detection for. (1 processes every keyframe, 2 would process every other keyframe, etc.)
-* information_XXX - information values for the different residuals in pose graph optimization. Higher values indicate more certainty about the measurement.
-* ignore_gps_altitude - set to TRUE typically if running in a live setup due to large fluctuations in GPS altitude. Uses the odometry altitude value instead.
-* gps_active_X - whether agent X has an active GPS.
-* gps_referenceX - the reference point for local GPS coordinates.
-* gps_offsetX - the translational position offset between IMU and GPS antenna onboard UAV.
+* **gps_align_num_corr** - number of required GPS-odometry correspondences to start initial GPS alignment.
+* **gps_align_cov_max** - the threshold that the covariance of the initial GPS alignment must be under for acceptance. Increase this value if there is an issue with GPS initialization (system requires this for active gps agents).
+* **rel_pose_corr_min** - minimum required number of correspondences following a loop detection relative pose optimization needed to accept the loop closure.
+* **rel_pose_outlier_norm_min** - norm residual value that a residual of the loop detection relative pose optimization must be above in order to consider that residual an "outlier" and remove it from the following optimization.
+* **local_opt_window_size** - size of the window of recent keyframes for sliding window local Pose Graph optimization.
+* **loop_image_min_matches** - minimum keypoint matches in an image to continue with loop closure candidate.
+* **loop_detect_sac_thresh** - threshold for classifying a point as an inlier in RANSAC 3D-2D P3P in loop detection. Lower value is a stricter condition.
+* **loop_detect_sac_max_iter** - max number of iterations for the RANSAC 3D-2D P3P in loop detection.
+* **loop_detect_min_sac_inliers** - minimum number of inliers of RANSAC 3D-2D P3P in loop detection to continue with loop closure candidate.
+* **loop_detect_min_sac_inv_inliers** - minimum number of inliers of the INVERSE RANSAC 3D-2D P3P in loop detection to continue with loop closure candidate.
+* **loop_detect_min_pose_inliers** - the final threshold of inliers from the relative Pose Graph optimization of the loop detection process to verify loop closure.
+* **loop_detect_reset_time** - the amount of time following a loop closure where no new loop closures are looked for for that agent.
+* **loop_detect_skip_kf** - number of keyframes to skip loop detection for. (1 processes every keyframe, 2 would process every other keyframe, etc.).
+* **information_XXX** - information values for the different residuals in Pose Graph optimization. Higher values indicate more certainty about the measurement.
+* **ignore_gps_altitude** - set to TRUE typically if running in a live setup due to large fluctuations in GPS altitude. Uses the odometry altitude value instead.
+* **gps_active_X** - whether agent X has an active GPS.
+* **gps_referenceX** - the reference point for local GPS coordinates.
+* **gps_offsetX** - the translational position offset between IMU and GPS antenna onboard UAV.
 
 ## General setup ##
-The following describes how to run the system. A VINS-Mono yaml configuration file is required for the vins_client_server package.
-A stereo yaml configuration file is required for the dense_stereo package from image_undistort, and an ncamera yaml configuration file is required for
-the pcl_fusion package. Examples of these can be found in the conf folder.
+The following describes how to run the system.  
+A series of configuration files are necessary to run different components:
+* A VINS-Mono `yaml` configuration file is required for the `vins_client_server` [package](https://github.com/VIS4ROB-lab/vins_client_server).
+* A stereo `yaml` configuration file is required for the `dense_stereo package` from [image_undistort](https://github.com/ethz-asl/image_undistort) to generate a dense point cloud from a pair of stereo images.
+* An `ncamera` yaml configuration file is required for the `pcl_fusion` [package](https://github.com/VIS4ROB-lab/pcl_fusion). 
+Examples of these configuration files can be found in the folder `pose_graph_backend/conf`.
 
-On the PC, run the following in separate terminals:
+## Usage examples ##
+### 1. EuRoC Dataset ###
+#### 1.1 Single Agent ####
+The following instructions shows how to run a single agent of the [EuRoC dataset]((https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets)) with a simulation of the full pipeline (using the Leica position measurements as a fake GPS).
+
+First, launch the backend software in separate terminals:
+```
+$ roslaunch pose_graph_backend pose_graph_node_euroc.launch num_agents:=1
+$ roslaunch voxblox_ros euroc_dataset.launch
+```
+Wait for the message `[PGB] Sucessfully read the parameters and the vocabulary` to be printed in the terminal. This indicates that the pose-graph is ready.
+
+Launch the client software in separate terminals (make sure the `agent_id` parameters match in the launch files):
+```
+$ roslaunch vins_estimator multi_euroc_0.launch
+$ roslaunch pcl_fusion pcl_fusion_node_euroc.launch
+```
+
+Finally, launch the EuRoC rosbag specifying the right path:
+```
+$ roslaunch pose_graph_backend multi_agent_play_0.launch  path0:=/path/to/euroc/bagfile.bag
+```
+
+#### 1.2 Multi Agent ####
+Running the full pipeline with more than one agent is not recommended on a single PC unless you have a powerful PC (since it would be running visual-inertial odometry, dense stereo pointcloud construction, pointcloud filtering, Pose Graph optimization, loop detection, and mesh reconstruction for every agent). A better alternative is to run the client-side software and record its output from the EuRoC data in a bag file for different EuRoC trajectories individually, and then play those bag files simultaneously while running the backend packages. This more closely reflects the actual load on your pc.  
+
+An example of the client software output from the first three EuRoC datasets can be found in the folder `pose_graph_backend/data` as prerecorded bag files. To simulate the multi-agent system follow these instructions.
+
+Launch the backend software in separate terminals:
+```
+$ roslaunch pose_graph_backend pose_graph_node_euroc.launch
+$ roslaunch voxblox_ros euroc_dataset.launch
+```
+Wait for the message `[PGB] Sucessfully read the parameters and the vocabulary` to be printed in the terminal. This indicates that the pose-graph is ready.  
+
+Navigate to the folder `pose_graph_backend/data` and play each bag file in separate terminals:
+```
+$ rosbag play MH_01_PreRecordedUAV.bag
+$ rosbag play MH_02_PreRecordedUAV.bag
+$ rosbag play MH_03_PreRecordedUAV.bag
+```
+
+### 2. General Usage ###
+The following instructions show how to run the Pose Graph for a custom sensor set-up. First, you need to create the necessary configuration files as described above. Then, you need to adapt the launch files to the number of agents and their IDs and map the topics to the right names.  
+
+To start up the Pose Graph, run the following launch files in separate terminals **on the server side**:
 ``` 
-  roslaunch pose_graph_backend pose_graph_node_v4rl.launch
-  roslaunch voxblox_ros v4rl.launch
+$ roslaunch pose_graph_backend pose_graph_node.launch num_agents:=NUM_AGENTS
+$ roslaunch voxblox_ros voxblox_server_node.launch num_agents:=NUM_AGENTS
 ```
-Wait for the "Read parameters and started threads" message to appear in terminal. The pose_graph_backend should launch RVIZ.
-On the UAV, run the following in separate terminals. The launch files must be edited to reflect assigned UAV ids
-in the agent_id parameter:
-```
-  roslaunch vins_estimator v4rl.launch
-  roslaunch pcl_fusion pcl_fusion_node_v4rl.launch
-```
-The pcl_fusion should launch dense_stereo from image_undistort. The UAV should now be able to begin flying, and the agent's
-trajectory should appear in RVIZ after the world frame initialization has completed in the pose_graph_backend.
+Wait for the message `[PGB] Sucessfully read the parameters and the vocabulary` to be printed in the terminal. This indicates that the pose-graph is ready.  
 
-## Euroc Dataset ##
-### Single Agent ###
-The following shows how to run a single agent of the euroc dataset with a simulation of the full pipeline on your PC.
-(https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets)
-(using the Leica position measurements as a fake GPS).
-
-Launch the backend software in separate terminals:
+**On the robot's side**, run the following instructions in separate terminals for all the robots. The launch files **must be edited** to reflect assigned UAV IDs in the `agent_id` parameter:
 ```
-        roslaunch pose_graph_backend pose_graph_node_euroc.launch
-        roslaunch voxblox_ros euroc_dataset.launch
+$ roslaunch vins_estimator vins_estimator.launch
+$ roslaunch pcl_fusion pcl_fusion_node.launch
 ```
-Wait for the "Read parameters and started threads" message to appear for the pose_graph_backend.
-
-Launch the client software in separate terminals (make sure the agent_id parameters match in the launch files):
-```
-  roslaunch vins_estimator multi_euroc_0.launch
-  roslaunch pcl_fusion pcl_fusion_node_euroc.launch
-```
-
-Finally, launch the Euroc data:
-```
-  roslaunch multi_agent_play_0.launch
-```
-
-### Multi Agent ###
-Running the full pipeline with more than one agent is not recommended on a single PC unless you have a powerful PC (since it would be running visual-inertial odometry, dense stereo pointcloud construction, pointcloud filtering, pose graph optimization, loop detection, and mesh reconstruction for every agent...). A better alternative
-is to run the client-side software and record its output from the Euroc data in a bag file for different Euroc trajectories individually, and then play those bag files simultaneously while running the backend packages. This more closely reflects
-the actual load on your pc. An example of the client software output from the first three Euroc datasets can be found in the data folder 
-of this repository as prerecorded bag files. To simulate the multi-agent system:
-
-Launch the backend software in separate terminals:
-```
-  roslaunch pose_graph_backend pose_graph_node_euroc.launch
-  roslaunch voxblox_ros euroc_dataset.launch
-```
-Play each bag file in separate terminals:
-```
-  rosbag play MH_01_PreRecordedUAV.bag
-  rosbag play MH_02_PreRecordedUAV.bag
-  rosbag play MH_03_PreRecordedUAV.bag
-  
-
+The `pcl_fusion` launch file should launch `dense_stereo` to create a dense point cloud from stereo images. The UAVs should now be able to begin flying, and the agents' trajectories should appear in `RVIZ` after the GPS frame initialization has been completed in the Pose Graph.
