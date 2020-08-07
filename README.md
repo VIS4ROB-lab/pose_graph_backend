@@ -151,3 +151,6 @@ $ roslaunch vins_estimator vins_estimator.launch
 $ roslaunch pcl_fusion pcl_fusion_node.launch
 ```
 The `pcl_fusion` launch file should launch `dense_stereo` to create a dense point cloud from stereo images. The UAVs should now be able to begin flying, and the agents' trajectories should appear in `RVIZ` after the GPS frame initialization has been completed in the Pose Graph.
+
+## Contributing ##
+Contributions that help to improve the code are welcome. In case you want to contribute, please adapt to the [Google C++ coding style](https://google.github.io/styleguide/cppguide.html/) and run `bash clang-format-all .` on your code before any commit.
