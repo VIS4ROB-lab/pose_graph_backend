@@ -43,10 +43,10 @@
     
     <!-- SYSTEM TOPIC REMAPPING -->
     <param name="gps_active_0" value="true"/>
-    <remap from="/keyframe0" to="/pegasus/pcl_fusion_0/fused_vins_keyframe" /> 
-    <remap from="/odometry0" to="/pegasus/vins_estimator/odometry" />
-    <remap from="/fake_gps0" to="/pegasus/vrpn_client/raw_transform" />
-    <remap from="/gps0" to="/pegasus/gps" />
+    <remap from="/keyframe0"  to="/pegasus/pcl_fusion_0/fused_vins_keyframe" /> 
+    <remap from="/odometry0"  to="/pegasus/vins_estimator/odometry" />
+    <remap from="/fake_gps0"  to="/pegasus/vrpn_client/raw_transform" />
+    <remap from="/gps0"       to="/pegasus/gps" />
     <remap from="/fused_pcl0" to="/pegasus/pcl_fusion_0/fused_pcl"/>
   </node>
 

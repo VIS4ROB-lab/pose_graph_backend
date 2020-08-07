@@ -1,6 +1,7 @@
 <launch>
   <!-- Debug -->
   <arg name="launch_prefix" default=""/> <!-- xterm -fs 60 -e gdb args -->
+  <arg name="num_agents" default="4" />
 
   <!-- Pose-Graph Node -->
   <node name="pose_graph_backend" pkg="pose_graph_backend" type="pose_graph_node" output="screen" launch-prefix="$(arg launch_prefix)">
@@ -8,7 +9,7 @@
     <param name="bow_voc" value="$(find pose_graph_backend)/conf/briskOKVIS_k10_L6_voc_v1.yml.gz"/>
     
     <!-- Number of agents and calibration values -->
-    <param name="num_agents" value="4" />
+    <param name="num_agents" value="$(arg num_agents)" />
 
     <param name="cam_config0" value="$(find pose_graph_backend)/conf/ncamera0.yaml"/>
     <rosparam param="gps_reference0"> [0.0, 0.0, 0.0]</rosparam>
