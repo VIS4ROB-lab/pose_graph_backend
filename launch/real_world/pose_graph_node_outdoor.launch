@@ -1,10 +1,12 @@
 <launch>
+  <arg name="num_agents" default="1"/>
+  
   <!-- Debug -->
   <arg name="launch_prefix" default=""/> <!-- xterm -fs 60 -e gdb args -->
   
   <node name="pose_graph_backend" pkg="pose_graph_backend" type="pose_graph_node" output="screen" launch-prefix="$(arg launch_prefix)">
-    <param name="bow_voc" value="$(find pose_graph_backend)/conf/briskOKVIS_k10_L6_voc_v1.yml.gz"/>
-    <param name="num_agents" value="1" />
+    <param name="bow_voc"    value="$(find pose_graph_backend)/conf/briskOKVIS_k10_L6_voc_v1.yml.gz"/>
+    <param name="num_agents" value="$(arg num_agents)" />
 
     <param name="cam_config0" value="$(find pose_graph_backend)/conf/ncamera_23026.yaml"/> <!-- JOHNNY -->
     <rosparam param="gps_reference0"> [47.408624, 8.5044504, 561.459]</rosparam>
@@ -39,6 +41,7 @@
     <param name="information_loop_edges_p"        value="1"/>
 
     <param name="ignore_gps_altitude"             value="true"/>
+    <param name="simulation"                      value="false"/>
     <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
     
     <!-- SYSTEM TOPIC REMAPPING -->

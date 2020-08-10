@@ -1,4 +1,5 @@
 <launch>
+  <arg name="num_agents"/>
   <arg name="mav_name" default="firefly"/>
 
   <!-- Debug -->
@@ -6,9 +7,8 @@
 
   <!-- Pose-Graph Node -->
   <node name="pose_graph_backend" pkg="pose_graph_backend" type="pose_graph_node" output="screen" launch-prefix="$(arg launch_prefix)">
-    <param name="bow_voc" value="$(find pose_graph_backend)/conf/briskOKVIS_k10_L6_voc_v1.yml.gz"/>
-    <param name="num_agents" value="1" />
-    <param name="simulation" value="true" />
+    <param name="bow_voc"    value="$(find pose_graph_backend)/conf/briskOKVIS_k10_L6_voc_v1.yml.gz"/>
+    <param name="num_agents" value="$(arg num_agents)" />
 
     <param name="cam_config0" value="$(find pose_graph_backend)/conf/ncamera_sim_visensor.yaml"/> 
     <rosparam param="gps_reference0">[47.4503488, 8.6815056, 0.0]</rosparam>
@@ -43,6 +43,7 @@
     <param name="information_loop_edges_p"        value="1"/>
 
     <param name="ignore_gps_altitude"             value="false"/>
+    <param name="simulation"                      value="true"/>
     <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
     
     <!-- SYSTEM TOPIC REMAPPING -->

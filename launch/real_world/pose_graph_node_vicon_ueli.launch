@@ -43,6 +43,7 @@
     <param name="information_loop_edges_p"        value="1"/>
 
     <param name="ignore_gps_altitude"             value="false"/>
+    <param name="simulation"                      value="false"/>
     <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
     
     <!-- SYSTEM TOPIC REMAPPING -->
