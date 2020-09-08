@@ -75,7 +75,7 @@ bool ParameterReader::readParameters(SystemParameters &params) {
     const std::string param_name_i = "cam_config" + std::to_string(i);
     std::string file_name_i;
     if (!nh_->getParam(param_name_i, file_name_i)) {
-      ROS_WARN("[PGB] Parameter '%s' missing", param_name_i);
+      ROS_WARN_STREAM("[PGB] Parameter " << param_name_i << " missing");
       successful = false;
       break;
     }
@@ -83,7 +83,7 @@ bool ParameterReader::readParameters(SystemParameters &params) {
     // Read the camera configuration file
     CameraParameters cam_params_i(i, file_name_i);
     if (cam_params_i.camera == NULL) {
-      ROS_WARN("[PGB] Could not read parameters for camera %d", i);
+      ROS_WARN_STREAM("[PGB] Could not read parameters for camera " << i);
       successful = false;
       break;
     }
@@ -93,7 +93,7 @@ bool ParameterReader::readParameters(SystemParameters &params) {
     const std::string gps_offset_name_i = "gps_offset" + std::to_string(i);
     std::vector<double> gps_offset_i;
     if (!nh_->getParam(gps_offset_name_i, gps_offset_i)) {
-      ROS_WARN("[PGB] Parameter '%s' missing", gps_offset_name_i);
+      ROS_WARN_STREAM("[PGB] Parameter " << gps_offset_name_i << " missing");
       successful = false;
       break;
     }
@@ -101,7 +101,7 @@ bool ParameterReader::readParameters(SystemParameters &params) {
         "gps_reference" + std::to_string(i);
     std::vector<double> gps_reference_i;
     if (!nh_->getParam(gps_reference_name_i, gps_reference_i)) {
-      ROS_WARN("[PGB] Parameter '%s' missing", gps_reference_name_i);
+      ROS_WARN_STREAM("[PGB] Parameter " << gps_reference_name_i << " missing");
       successful = false;
       break;
     }
@@ -114,7 +114,7 @@ bool ParameterReader::readParameters(SystemParameters &params) {
     const std::string gps_active_name_i = "gps_active_" + std::to_string(i);
     bool gps_active_i = false;
     if (!nh_->getParam(gps_active_name_i, gps_active_i)) {
-      ROS_WARN("[PGB] Parameter '%s' missing", gps_active_name_i);
+      ROS_WARN_STREAM("[PGB] Parameter " << gps_active_name_i << " missing");
       successful = false;
     }
     gps_active.push_back(gps_active_i);
