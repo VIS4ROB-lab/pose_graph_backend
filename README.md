@@ -2,8 +2,14 @@ Pose Graph Backend
 ==================
 This repository contains an optimization-based pose-graph backend for multi-agent sensor fusion. This repository is used in a wider framework for multi-robot path planning, available [here](https://github.com/VIS4ROB-lab/multi_robot_coordination).  
 
-If you use this code in your academic work, please cite:  
-_"Multi-robot Coordination with Agent-Server Architecture for Autonomous Navigation in Partially Unknown Environments"_ by Luca Bartolomei, Marco Karrer and Margarita Chli, IROS 2020.  
+If you use this code in your academic work, please cite:
+
+    @inproceedings{bartolomei2020multi,
+      title={Multi-robot Coordination with Agent-Server Architecture for Autonomous Navigation in Partially Unknown Environments},
+      author={Bartolomei, Luca and Karrer, Marco and Chli, Margarita},
+      booktitle={2020 {IEEE/RSJ} International Conference on Intelligent Robots and Systems ({IROS})},
+      year={2020}
+    }
 
 ## Overview ##
 This sensor fusion framework is built as part of a Collaborative SLAM client-server framework consisting of the following software packages:
@@ -21,6 +27,7 @@ All the above must be installed to test the full system. This was developed and 
 
 ## Installation ##
 This software has been tested under Ubuntu 18.04 LTS and ROS Melodic. Here we assume that ROS has been properly installed.  
+
 First, install these dependencies:
 ```
 $ sudo apt-get install python-catkin-tools python-wstool libeigen3-dev
@@ -59,7 +66,7 @@ $ source devel/setup.bash
 ```
 
 ## Topics ##
-The following are the ROS topics the Pose Graph backend node subscribes to. The X represents the x-th agent:
+The following are the ROS topics the Pose Graph backend node subscribes to. The `X` represents the x-th agent:
 * `/keyframeX` - custom keyframe message described in `comm_msgs` sent by `pose graph` node in `vins_client_server`.
 * `/odometryX` - current odometry estimate sent by `vins_client_server`.
 * `/gpsX` - GPS measurement directly from sensor.
