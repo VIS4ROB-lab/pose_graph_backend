@@ -379,7 +379,7 @@ void System::keyframeConsumerLoop(const uint64_t agent_id) {
 
     // start = chrono::steady_clock::now();
     if (loop_detected) {
-      ROS_INFO("Found a loop closure for agent %lu frame %lu", agent_id,
+      ROS_INFO("[PGB] Found a loop closure for agent %lu frame %lu", agent_id,
                kf_id.second);
       last_loop_closure_[agent_id] = keyframe_to_process->getTimestamp();
     } else {
@@ -1065,8 +1065,9 @@ void System::syncAndAlignGPS(const uint64_t agent_id,
     if (could_init) {
       maps_[agent_id]->setWorldTransformation(T_W_M, covariance);
       trigger_init_opt_[agent_id] = true;
-      ROS_INFO("Initialized the GPS reference transformation for agent %lu",
-               agent_id);
+      ROS_INFO(
+          "[PGB] Initialized the GPS reference transformation for agent %lu",
+          agent_id);
     }
   }
 }
