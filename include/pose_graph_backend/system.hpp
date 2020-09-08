@@ -125,7 +125,7 @@ class System {
       FusedPCLCallback;
 
   /// \brief Empty constructor
-  System(){};
+  System() {}
   ~System();
 
   /// \brief Constructor

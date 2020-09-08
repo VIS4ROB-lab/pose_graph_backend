@@ -117,7 +117,8 @@ struct SystemParameters {
         information_loop_edges_p(0.5),
         gps_active(std::vector<bool>(1, 0)),
         local_opt_window_size(5),
-        rel_pose_corr_min(12) {}
+        rel_pose_corr_min(12),
+        log_folder("") {}
   SystemParameters(
       const size_t num_agents_, const bool simulation_,
       const CameraParametersVector& cam_vector_,
@@ -139,7 +140,8 @@ struct SystemParameters {
       const double information_loop_edges_yaw_,
       const double information_loop_edges_p_,
       const std::vector<bool> gps_active_, const bool ignore_gps_altitude_,
-      const int local_opt_window_size_, const int rel_pose_corr_min_)
+      const int local_opt_window_size_, const int rel_pose_corr_min_,
+      const std::string& log_folder_)
       : num_agents(num_agents_),
         simulation(simulation_),
         camera_parameters(cam_vector_),
@@ -168,7 +170,8 @@ struct SystemParameters {
         information_loop_edges_p(information_loop_edges_p_),
         ignore_gps_altitude(ignore_gps_altitude_),
         local_opt_window_size(local_opt_window_size_),
-        rel_pose_corr_min(rel_pose_corr_min_) {}
+        rel_pose_corr_min(rel_pose_corr_min_),
+        log_folder(log_folder_) {}
 
   size_t num_agents;
   bool simulation;
@@ -200,6 +203,7 @@ struct SystemParameters {
   bool ignore_gps_altitude;
   int local_opt_window_size;
   int rel_pose_corr_min;
+  std::string log_folder;
 };
 
 }  // namespace pgbe

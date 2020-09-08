@@ -36,6 +36,9 @@
 
 #include "parameter-reader.hpp"
 
+#include <ros/package.h>
+#include <boost/filesystem.hpp>
+
 namespace pgbe {
 
 ParameterReader::ParameterReader(ros::NodeHandle &nh, const size_t num_agents)
@@ -268,6 +271,28 @@ bool ParameterReader::readParameters(SystemParameters &params) {
     successful = false;
   }
 
+  // Get the log folder -- by default, the estimations will be dumped in a log
+  // folder in the pose_graph_backend package
+  // To avoid overwriting, use the current time stamp as the name of the folder
+  // Visit http://en.cppreference.com/w/cpp/chrono/c/strftime
+  // for more information about date/time format
+  time_t now = time(0);
+  struct tm tstruct = *localtime(&now);
+  char buf[80];
+  strftime(buf, sizeof(buf), "/logs/%Y-%m-%d_%X", &tstruct);
+
+  std::string log_folder(ros::package::getPath("pose_graph_backend") + buf);
+  ROS_INFO_STREAM("[PGB] Logging folder: " << log_folder);
+
+  // If the log folder does not exist, then create it
+  boost::filesystem::path log_folder_path(log_folder);
+  if (!boost::filesystem::exists(log_folder_path)) {
+    if (!boost::filesystem::create_directories(log_folder_path)) {
+      ROS_ERROR("[PGB] Could not create log folders - Abort...");
+      return -1;
+    }
+  }
+
   if (successful) {
     params = SystemParameters(
         num_agents_, simulation_, cam_vector, gps_parameters,
@@ -281,7 +306,7 @@ bool ParameterReader::readParameters(SystemParameters &params) {
         information_odom_map_p, information_odom_edges_yaw,
         information_odom_edges_p, information_loop_edges_yaw,
         information_loop_edges_p, gps_active, ignore_gps_altitude,
-        local_opt_window_size, rel_pose_corr_min);
+        local_opt_window_size, rel_pose_corr_min, log_folder);
   } else {
     return successful;
   }
