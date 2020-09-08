@@ -11,6 +11,8 @@ If you use this code in your academic work, please cite:
       year={2020}
     }
 
+This project is released under a GPLv3 license.
+
 ## Overview ##
 This sensor fusion framework is built as part of a Collaborative SLAM client-server framework consisting of the following software packages:
 * Client's side (Onboard the UAV):
