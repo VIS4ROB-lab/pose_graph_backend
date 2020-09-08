@@ -301,12 +301,13 @@ bool ParameterReader::readParameters(SystemParameters &params) {
         loop_detect_min_sac_inliers, loop_detect_min_sac_inv_inliers,
         loop_detect_min_pose_inliers, rel_pose_outlier_norm_min,
         loop_detect_reset_time, max_loop_candidates, gps_align_num_corr,
-        gps_align_cov_max, loop_detect_skip_kf, information_odom_drift_yaw,
-        information_odom_drift_p, information_odom_map_yaw,
-        information_odom_map_p, information_odom_edges_yaw,
-        information_odom_edges_p, information_loop_edges_yaw,
-        information_loop_edges_p, gps_active, ignore_gps_altitude,
-        local_opt_window_size, rel_pose_corr_min, log_folder);
+        gps_align_cov_max, gps_active, loop_detect_skip_kf,
+        information_odom_drift_yaw, information_odom_drift_p,
+        information_odom_map_yaw, information_odom_map_p,
+        information_odom_edges_yaw, information_odom_edges_p,
+        information_loop_edges_yaw, information_loop_edges_p,
+        ignore_gps_altitude, local_opt_window_size, rel_pose_corr_min,
+        log_folder);
   } else {
     return successful;
   }

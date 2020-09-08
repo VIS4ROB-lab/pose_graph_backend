@@ -105,7 +105,7 @@ struct SystemParameters {
         max_loop_candidates(5),
         gps_align_num_corr(5),
         gps_align_cov_max(1.0),
-        ignore_gps_altitude(true),
+        gps_active(std::vector<bool>(1, 0)),
         loop_detect_skip_kf(2),
         information_odom_drift_yaw(500),
         information_odom_drift_p(100),
@@ -115,7 +115,7 @@ struct SystemParameters {
         information_odom_edges_p(0.5),
         information_loop_edges_yaw(2),
         information_loop_edges_p(0.5),
-        gps_active(std::vector<bool>(1, 0)),
+        ignore_gps_altitude(true),
         local_opt_window_size(5),
         rel_pose_corr_min(12),
         log_folder("") {}
@@ -131,15 +131,15 @@ struct SystemParameters {
       const double rel_pose_outlier_norm_min_,
       const double loop_detect_reset_time_, const int max_loop_candidates_,
       const int gps_align_num_corr_, const double gps_align_cov_max_,
-      const int loop_detect_skip_kf_, const double information_odom_drift_yaw_,
+      const std::vector<bool> gps_active_, const int loop_detect_skip_kf_,
+      const double information_odom_drift_yaw_,
       const double information_odom_drift_p_,
       const double information_odom_map_yaw_,
       const double information_odom_map_p_,
       const double information_odom_edges_yaw_,
       const double information_odom_edges_p_,
       const double information_loop_edges_yaw_,
-      const double information_loop_edges_p_,
-      const std::vector<bool> gps_active_, const bool ignore_gps_altitude_,
+      const double information_loop_edges_p_, const bool ignore_gps_altitude_,
       const int local_opt_window_size_, const int rel_pose_corr_min_,
       const std::string& log_folder_)
       : num_agents(num_agents_),
@@ -177,7 +177,6 @@ struct SystemParameters {
   bool simulation;
   CameraParametersVector camera_parameters;
   GpsParametersVector gps_parameters;
-  std::shared_ptr<BRISKVocabulary> voc_ptr;
   double loop_candidate_min_score;
   int loop_image_min_matches;
   int loop_detect_sac_thresh;
@@ -203,7 +202,9 @@ struct SystemParameters {
   bool ignore_gps_altitude;
   int local_opt_window_size;
   int rel_pose_corr_min;
+
   std::string log_folder;
+  std::shared_ptr<BRISKVocabulary> voc_ptr;
 };
 
 }  // namespace pgbe
