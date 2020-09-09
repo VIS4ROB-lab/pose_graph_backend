@@ -2,6 +2,7 @@
   <!-- Debug & Parameters -->
   <arg name="launch_prefix" default=""/> <!-- xterm -fs 60 -e gdb args -->
   <arg name="num_agents"/>
+  <arg name="logging"       default="true"/>
   
   <node name="pose_graph_backend" pkg="pose_graph_backend" type="pose_graph_node" output="screen" launch-prefix="$(arg launch_prefix)">
     <param name="bow_voc" value="$(find pose_graph_backend)/conf/briskOKVIS_k10_L6_voc_v1.yml.gz"/>
@@ -41,6 +42,7 @@
 
     <param name="ignore_gps_altitude"             value="true"/>
     <param name="simulation"                      value="false"/>
+    <param name="logging"                         value="$(arg logging)"/>
     <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
     
     <!-- SYSTEM TOPIC REMAPPING - TODO Adjust here -->

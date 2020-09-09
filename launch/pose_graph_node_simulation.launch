@@ -1,6 +1,7 @@
 <launch>
   <arg name="num_agents"/>
   <arg name="mav_name" default="firefly"/>
+  <arg name="logging"  default="true"/>
 
   <!-- Debug -->
   <arg name="launch_prefix" default=""/> <!-- xterm -fs 60 -e gdb args -->
@@ -57,6 +58,7 @@
 
     <param name="ignore_gps_altitude"             value="false"/>
     <param name="simulation"                      value="true"/>
+    <param name="logging"                         value="$(arg logging)"/>
     <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
     
     <!-- SYSTEM TOPIC REMAPPING -->

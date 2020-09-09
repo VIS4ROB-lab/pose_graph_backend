@@ -423,16 +423,18 @@ void System::keyframeConsumerLoop(const uint64_t agent_id) {
     keyframes_received_[agent_id]->PushBlockingIfFull(keyframe_to_process, 1);
 
     // Write poses to csv for debugging
-    std::string filename =
-        parameters_.log_folder + "/pose_" + std::to_string(agent_id) + "_" +
-        std::to_string(keyframe_to_process->getId().second) + ".csv";
-    if (kf_id.second % 1 == 0) {
-      maps_[agent_id]->writePosesToFileInWorld(filename);
-    }
-    filename =
-        parameters_.log_folder + "/pose_" + std::to_string(agent_id) + ".csv";
-    if (kf_id.second % 1 == 0) {
-      maps_[agent_id]->writePosesToFileInWorld(filename);
+    if (parameters_.logging) {
+      std::string filename =
+          parameters_.log_folder + "/pose_" + std::to_string(agent_id) + "_" +
+          std::to_string(keyframe_to_process->getId().second) + ".csv";
+      if (kf_id.second % 1 == 0) {
+        maps_[agent_id]->writePosesToFileInWorld(filename);
+      }
+      filename =
+          parameters_.log_folder + "/pose_" + std::to_string(agent_id) + ".csv";
+      if (kf_id.second % 1 == 0) {
+        maps_[agent_id]->writePosesToFileInWorld(filename);
+      }
     }
   }
 }
@@ -521,17 +523,19 @@ void System::optimizerLoop(const uint64_t agent_id) {
 
       // Write transformed trajectory of agents to file for global error
       // comparison
-      for (size_t i = 0; i < parameters_.num_agents; ++i) {
-        std::string filename = parameters_.log_folder + "/global_opt_pose_";
-        if (maps_[i]->hasValidWorldTransformation()) {
-          Map::KFvec last_keyframe = maps_[i]->getMostRecentN(2);
-          if (maps_[i]->getMapSize() > 1) {
-            std::cout << "Writing global opt poses for agent: " << i
-                      << std::endl;
-            filename = filename + std::to_string(i) + "_" +
-                       std::to_string(last_keyframe[0]->getId().second) +
-                       ".csv";
-            maps_[i]->writePosesToFileInWorld(filename);
+      if (parameters_.logging) {
+        for (size_t i = 0; i < parameters_.num_agents; ++i) {
+          std::string filename = parameters_.log_folder + "/global_opt_pose_";
+          if (maps_[i]->hasValidWorldTransformation()) {
+            Map::KFvec last_keyframe = maps_[i]->getMostRecentN(2);
+            if (maps_[i]->getMapSize() > 1) {
+              std::cout << "Writing global opt poses for agent: " << i
+                        << std::endl;
+              filename = filename + std::to_string(i) + "_" +
+                         std::to_string(last_keyframe[0]->getId().second) +
+                         ".csv";
+              maps_[i]->writePosesToFileInWorld(filename);
+            }
           }
         }
       }

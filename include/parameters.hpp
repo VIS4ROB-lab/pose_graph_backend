@@ -118,6 +118,7 @@ struct SystemParameters {
         ignore_gps_altitude(true),
         local_opt_window_size(5),
         rel_pose_corr_min(12),
+        logging(true),
         log_folder("") {}
   SystemParameters(
       const size_t num_agents_, const bool simulation_,
@@ -141,7 +142,7 @@ struct SystemParameters {
       const double information_loop_edges_yaw_,
       const double information_loop_edges_p_, const bool ignore_gps_altitude_,
       const int local_opt_window_size_, const int rel_pose_corr_min_,
-      const std::string& log_folder_)
+      bool logging_, const std::string& log_folder_)
       : num_agents(num_agents_),
         simulation(simulation_),
         camera_parameters(cam_vector_),
@@ -171,6 +172,7 @@ struct SystemParameters {
         ignore_gps_altitude(ignore_gps_altitude_),
         local_opt_window_size(local_opt_window_size_),
         rel_pose_corr_min(rel_pose_corr_min_),
+        logging(logging_),
         log_folder(log_folder_) {}
 
   size_t num_agents;
@@ -203,6 +205,7 @@ struct SystemParameters {
   int local_opt_window_size;
   int rel_pose_corr_min;
 
+  bool logging;
   std::string log_folder;
   std::shared_ptr<BRISKVocabulary> voc_ptr;
 };

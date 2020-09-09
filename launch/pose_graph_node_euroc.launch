@@ -1,7 +1,8 @@
 <launch>
   <!-- Debug -->
   <arg name="launch_prefix" default=""/> <!-- xterm -fs 60 -e gdb args -->
-  <arg name="num_agents" default="4" />
+  <arg name="num_agents"    default="4" />
+  <arg name="logging"       default="true"/>
 
   <!-- Pose-Graph Node -->
   <node name="pose_graph_backend" pkg="pose_graph_backend" type="pose_graph_node" output="screen" launch-prefix="$(arg launch_prefix)">
@@ -57,6 +58,7 @@
 
     <param name="ignore_gps_altitude"             value="false"/>
     <param name="simulation"                      value="false"/>
+    <param name="logging"                         value="$(arg logging)"/>
     <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
     
     <!-- Topics remapping -->    
