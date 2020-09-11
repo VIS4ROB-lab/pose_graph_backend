@@ -81,24 +81,26 @@ The following are published by Pose Graph backend:
 * `/camera_pose_visualX` - RVIZ camera visualization.
 
 ## Parameters ##
-* **gps_align_num_corr** - number of required GPS-odometry correspondences to start initial GPS alignment.
-* **gps_align_cov_max** - the threshold that the covariance of the initial GPS alignment must be under for acceptance. Increase this value if there is an issue with GPS initialization (system requires this for active gps agents).
-* **rel_pose_corr_min** - minimum required number of correspondences following a loop detection relative pose optimization needed to accept the loop closure.
-* **rel_pose_outlier_norm_min** - norm residual value that a residual of the loop detection relative pose optimization must be above in order to consider that residual an "outlier" and remove it from the following optimization.
-* **local_opt_window_size** - size of the window of recent keyframes for sliding window local Pose Graph optimization.
-* **loop_image_min_matches** - minimum keypoint matches in an image to continue with loop closure candidate.
-* **loop_detect_sac_thresh** - threshold for classifying a point as an inlier in RANSAC 3D-2D P3P in loop detection. Lower value is a stricter condition.
-* **loop_detect_sac_max_iter** - max number of iterations for the RANSAC 3D-2D P3P in loop detection.
-* **loop_detect_min_sac_inliers** - minimum number of inliers of RANSAC 3D-2D P3P in loop detection to continue with loop closure candidate.
-* **loop_detect_min_sac_inv_inliers** - minimum number of inliers of the INVERSE RANSAC 3D-2D P3P in loop detection to continue with loop closure candidate.
-* **loop_detect_min_pose_inliers** - the final threshold of inliers from the relative Pose Graph optimization of the loop detection process to verify loop closure.
-* **loop_detect_reset_time** - the amount of time following a loop closure where no new loop closures are looked for for that agent.
-* **loop_detect_skip_kf** - number of keyframes to skip loop detection for. (1 processes every keyframe, 2 would process every other keyframe, etc.).
-* **information_XXX** - information values for the different residuals in Pose Graph optimization. Higher values indicate more certainty about the measurement.
-* **ignore_gps_altitude** - set to TRUE typically if running in a live setup due to large fluctuations in GPS altitude. Uses the odometry altitude value instead.
-* **gps_active_X** - whether agent X has an active GPS.
-* **gps_referenceX** - the reference point for local GPS coordinates.
-* **gps_offsetX** - the translational position offset between IMU and GPS antenna onboard UAV.
+Parameter | Description
+------------ | -------------
+gps_align_num_corr | number of required GPS-odometry correspondences to start initial GPS alignment.
+gps_align_cov_max | the threshold that the covariance of the initial GPS alignment must be under for acceptance. Increase this value if there is an issue with GPS initialization (system requires this for active gps agents).
+rel_pose_corr_min | minimum required number of correspondences following a loop detection relative pose optimization needed to accept the loop closure.
+rel_pose_outlier_norm_min | norm residual value that a residual of the loop detection relative pose optimization must be above in order to consider that residual an "outlier" and remove it from the following optimization.
+local_opt_window_size | size of the window of recent keyframes for sliding window local Pose Graph optimization.
+loop_image_min_matches | minimum keypoint matches in an image to continue with loop closure candidate.
+loop_detect_sac_thresh | threshold for classifying a point as an inlier in RANSAC 3D-2D P3P in loop detection. Lower value is a stricter condition.
+loop_detect_sac_max_iter | max number of iterations for the RANSAC 3D-2D P3P in loop detection.
+loop_detect_min_sac_inliers | minimum number of inliers of RANSAC 3D-2D P3P in loop detection to continue with loop closure candidate.
+loop_detect_min_sac_inv_inliers | minimum number of inliers of the INVERSE RANSAC 3D-2D P3P in loop detection to continue with loop closure candidate.
+loop_detect_min_pose_inliers | the final threshold of inliers from the relative Pose Graph optimization of the loop detection process to verify loop closure.
+loop_detect_reset_time | the amount of time following a loop closure where no new loop closures are looked for for that agent.
+loop_detect_skip_kf | number of keyframes to skip loop detection for. (1 processes every keyframe, 2 would process every other keyframe, etc.).
+information_XXX | information values for the different residuals in Pose Graph optimization. Higher values indicate more certainty about the measurement.
+ignore_gps_altitude | set to TRUE typically if running in a live setup due to large fluctuations in GPS altitude. Uses the odometry altitude value instead.
+gps_active_X | whether agent X has an active GPS.
+gps_referenceX | the reference point for local GPS coordinates.
+gps_offsetX | the translational position offset between IMU and GPS antenna onboard UAV.
 
 ## General setup ##
 The following describes how to run the system.  
@@ -118,7 +120,7 @@ First, launch the backend software in separate terminals:
 $ roslaunch pose_graph_backend pose_graph_node_euroc.launch num_agents:=1
 $ roslaunch voxblox_ros euroc_dataset.launch
 ```
-Wait for the message `[PGB] Sucessfully read the parameters and the vocabulary` to be printed in the terminal. This indicates that the pose-graph is ready.
+Wait for the messages `[PGB] Sucessfully read the parameters and the vocabulary` and `[PGB] Set callbacks` to be printed in the terminal. This indicates that the pose-graph is ready. Note that the Voxblox node outputs visuals in RVIZ every 2 seconds.
 
 Launch the client software in separate terminals (make sure the `agent_id` parameters match in the launch files):
 ```
@@ -128,11 +130,11 @@ $ roslaunch pcl_fusion pcl_fusion_node_euroc.launch
 
 Finally, launch the EuRoC rosbag specifying the right path:
 ```
-$ roslaunch pose_graph_backend multi_agent_play_0.launch  path0:=/path/to/euroc/bagfile.bag
+$ roslaunch pose_graph_backend single_agent_play.launch  path:=/path/to/euroc/bagfile.bag
 ```
 
 #### 1.2 Multi Agent ####
-Running the full pipeline with more than one agent is not recommended on a single PC unless you have a powerful PC (since it would be running visual-inertial odometry, dense stereo pointcloud construction, pointcloud filtering, Pose Graph optimization, loop detection, and mesh reconstruction for every agent). A better alternative is to run the client-side software and record its output from the EuRoC data in a bag file for different EuRoC trajectories individually, and then play those bag files simultaneously while running the backend packages. This more closely reflects the actual load on your pc.  
+Running the full pipeline with more than one agent is not recommended on a single PC unless you have a powerful PC (since it would be running visual-inertial odometry, dense stereo pointcloud construction and pointcloud filtering for every agent, as well as Pose Graph optimization, loop detection, and mesh reconstruction). A better alternative is to run the client-side software and record its output from the EuRoC data in a bag file for different EuRoC trajectories individually, and then play those bag files simultaneously while running the backend packages. This more closely reflects the actual load on your pc.  
 
 An example of the client software output from the first three EuRoC datasets can be found in the folder `pose_graph_backend/data` as prerecorded bag files. To simulate the multi-agent system follow these instructions.
 
@@ -141,7 +143,7 @@ Launch the backend software in separate terminals:
 $ roslaunch pose_graph_backend pose_graph_node_euroc.launch
 $ roslaunch voxblox_ros euroc_dataset.launch
 ```
-Wait for the message `[PGB] Sucessfully read the parameters and the vocabulary` to be printed in the terminal. This indicates that the pose-graph is ready.  
+Wait for the messages `[PGB] Sucessfully read the parameters and the vocabulary` and `[PGB] Set callbacks` to be printed in the terminal. This indicates that the pose-graph is ready.  
 
 Navigate to the folder `pose_graph_backend/data` and play each bag file in separate terminals:
 ```
@@ -158,7 +160,7 @@ To start up the Pose Graph, run the following launch files in separate terminals
 $ roslaunch pose_graph_backend pose_graph_node.launch num_agents:=NUM_AGENTS
 $ roslaunch voxblox_ros voxblox_server_node.launch num_agents:=NUM_AGENTS
 ```
-Wait for the message `[PGB] Sucessfully read the parameters and the vocabulary` to be printed in the terminal. This indicates that the pose-graph is ready.  
+Wait for the message `[PGB] Sucessfully read the parameters and the vocabulary` to be printed in the terminal. This indicates that the pose-graph is ready. Note that the Voxblox node outputs visuals in RVIZ every 2 seconds.  
 
 **On the robot's side**, run the following instructions in separate terminals for all the robots. The launch files **must be edited** to reflect assigned UAV IDs in the `agent_id` parameter:
 ```
@@ -169,3 +171,4 @@ The `pcl_fusion` launch file should launch `dense_stereo` to create a dense poin
 
 ## Contributing ##
 Contributions that help to improve the code are welcome. In case you want to contribute, please adapt to the [Google C++ coding style](https://google.github.io/styleguide/cppguide.html/) and run `bash clang-format-all .` on your code before any commit.
+

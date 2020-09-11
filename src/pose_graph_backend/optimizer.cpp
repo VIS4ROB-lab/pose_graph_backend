@@ -1206,7 +1206,8 @@ void Optimizer::optimizeLocalPoseGraph(std::shared_ptr<Map> map_ptr,
   // options.callbacks.push_back(stop_callback);
   ceres::Solver::Summary summary;
   ceres::Solve(options, &problem, &summary);
-  // std::cout << summary.FullReport() << std::endl;
+  //std::cout << "Local Optimization Summary" << std::endl;
+  //std::cout << summary.FullReport() << std::endl;
 
   if (*stop_flag) {
     return;
