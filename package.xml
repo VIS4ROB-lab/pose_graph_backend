@@ -23,7 +23,6 @@
   <depend>opencv3_catkin</depend>
   <depend>geodetic_utils</depend>
   <depend>opengv</depend>
-  <depend>robopt</depend>
-  <depend>planner_msgs</depend>
+  <depend>robopt_open</depend>
 
 </package>

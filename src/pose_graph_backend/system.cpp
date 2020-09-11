@@ -1,30 +1,31 @@
 /*
-* Copyright (c) 2018, Vision for Robotics Lab
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-* * Redistributions of source code must retain the above copyright
-* notice, this list of conditions and the following disclaimer.
-* * Redistributions in binary form must reproduce the above copyright
-* notice, this list of conditions and the following disclaimer in the
-* documentation and/or other materials provided with the distribution.
-* * Neither the name of the Vision for Robotics Lab, ETH Zurich nor the
-* names of its contributors may be used to endorse or promote products
-* derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-* ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*
-*/
+ * Copyright (c) 2018, Vision for Robotics Lab
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * * Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * * Neither the name of the Vision for Robotics Lab, ETH Zurich nor the
+ * names of its contributors may be used to endorse or promote products
+ * derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
 
 /*
  * system.cpp
@@ -33,24 +34,22 @@
  * Created on: Aug 14, 2018
  */
 
+#include <algorithm>
 #include <chrono>
 #include <iostream>
-#include <algorithm>
 
-#include "pose_graph_backend/system.hpp"
+#include <pcl_conversions/pcl_conversions.h>
 #include "pose_graph_backend/optimizer.hpp"
-#include "pcl_conversions/pcl_conversions.h"
+#include "pose_graph_backend/system.hpp"
 
-#include <robopt/local-parameterization/pose-quaternion-local-param.h>
-#include <robopt/local-parameterization/pose-quaternion-yaw-local-param.h>
-#include <robopt/reprojection-error/relative-euclidean.h>
-#include <robopt/posegraph-error/four-dof-between.h>
-#include <robopt/posegraph-error/six-dof-between.h>
-#include <robopt/posegraph-error/gps-error-autodiff.h>
-#include <robopt/posegraph-error/four-dof-prior-autodiff.h>
-#include <robopt/common/definitions.h>
-
-
+#include <robopt_open/common/definitions.h>
+#include <robopt_open/local-parameterization/pose-quaternion-local-param.h>
+#include <robopt_open/local-parameterization/pose-quaternion-yaw-local-param.h>
+#include <robopt_open/posegraph-error/four-dof-between.h>
+#include <robopt_open/posegraph-error/four-dof-prior-autodiff.h>
+#include <robopt_open/posegraph-error/gps-error-autodiff.h>
+#include <robopt_open/posegraph-error/six-dof-between.h>
+#include <robopt_open/reprojection-error/relative-euclidean.h>
 
 namespace pgbe {
 
@@ -66,8 +65,7 @@ System::~System() {
   }
 }
 
-System::System(const SystemParameters &params) :
-  parameters_(params) {
+System::System(const SystemParameters& params) : parameters_(params) {
   database_ = std::make_shared<KeyFrameDatabase>(params);
   kf_loop_detection_skip_ = 0;
   init();
@@ -75,13 +73,12 @@ System::System(const SystemParameters &params) :
 
 void System::addKeyFrameMsg(const comm_msgs::keyframeConstPtr& keyframe_msg,
                             const uint64_t agent_id) {
-//  const uint64_t agent_id = keyframe_msg->agentId;
+  //  const uint64_t agent_id = keyframe_msg->agentId;
   keyframe_msgs_received_[agent_id]->PushBlockingIfFull(keyframe_msg, 1);
 }
 
-void System::addOdometryMsg(
-    const nav_msgs::OdometryConstPtr& keyframe_msg,
-    const uint64_t agent_id) {
+void System::addOdometryMsg(const nav_msgs::OdometryConstPtr& keyframe_msg,
+                            const uint64_t agent_id) {
   // Convert to internal representaion
   const double timestamp = keyframe_msg->header.stamp.toSec();
   Eigen::Vector3d translation(keyframe_msg->pose.pose.position.x,
@@ -95,24 +92,26 @@ void System::addOdometryMsg(
   {
     std::unique_lock<std::mutex> lock(odom_mutex_);
     odom_queues_[agent_id].push_back(meas);
-    // std::cout << std::setprecision(14) << "ODM msg: " << timestamp << std::endl;
+    // std::cout << std::setprecision(14) << "ODM msg: " << timestamp <<
+    // std::endl;
   }
 }
 
-void System::addPointCloudMsg(
-    const sensor_msgs::PointCloud2ConstPtr& pcl_msg,
-    const uint64_t agent_id) {
+void System::addPointCloudMsg(const sensor_msgs::PointCloud2ConstPtr& pcl_msg,
+                              const uint64_t agent_id) {
   // Add to measurement queue
   pcl_msgs_received_[agent_id]->PushBlockingIfFull(pcl_msg, 1);
 }
 
-void System::addFusedPointCloudMsg(const comm_msgs::fused_pclConstPtr &fused_pcl_msg,
+void System::addFusedPointCloudMsg(
+    const comm_msgs::fused_pclConstPtr& fused_pcl_msg,
     const uint64_t agent_id) {
-  fused_pcl_msgs_received_[agent_id]->PushNonBlockingDroppingIfFull(fused_pcl_msg, 10);
+  fused_pcl_msgs_received_[agent_id]->PushNonBlockingDroppingIfFull(
+      fused_pcl_msg, 10);
 }
 
-void System::addGpsMsg(
-    const sensor_msgs::NavSatFixConstPtr &gps_msg, const uint64_t agent_id) {
+void System::addGpsMsg(const sensor_msgs::NavSatFixConstPtr& gps_msg,
+                       const uint64_t agent_id) {
   gps_msgs_received_[agent_id]->PushBlockingIfFull(gps_msg, 1);
 }
 
@@ -122,8 +121,10 @@ void System::init() {
   optimization_flags_.resize(parameters_.num_agents, NULL);
   for (size_t i = 0; i < parameters_.num_agents; ++i) {
     maps_.emplace_back(std::shared_ptr<Map>(new Map(parameters_, i)));
-    maps_[i]->setGPSStatus(parameters_.gps_active[i]); // Embed this into the map initialization
-    std::cout << i << " has gps status: " << maps_[i]->getGPSStatus() << std::endl;
+    maps_[i]->setGPSStatus(
+        parameters_.gps_active[i]);  // Embed this into the map initialization
+    ROS_INFO_STREAM("[PGB] Agent "
+                    << i << " has gps status: " << maps_[i]->getGPSStatus());
     optimization_flags_[i] = new bool;
     *optimization_flags_[i] = false;
   }
@@ -145,19 +146,20 @@ void System::init() {
 
   // Initialize the GPS conversion nodes
   for (size_t i = 0; i < parameters_.num_agents; ++i) {
-    gps_converters_.emplace_back(std::shared_ptr<
-      geodetic_converter::GeodeticConverter>(new
-        geodetic_converter::GeodeticConverter()));
+    gps_converters_.emplace_back(
+        std::shared_ptr<geodetic_converter::GeodeticConverter>(
+            new geodetic_converter::GeodeticConverter()));
     gps_converters_[i]->initialiseReference(
-          parameters_.gps_parameters[i].local_reference[0],
-          parameters_.gps_parameters[i].local_reference[1],
-          parameters_.gps_parameters[i].local_reference[2]);
+        parameters_.gps_parameters[i].local_reference[0],
+        parameters_.gps_parameters[i].local_reference[1],
+        parameters_.gps_parameters[i].local_reference[2]);
   }
 
   // Initialize the measurement queues
   for (size_t i = 0; i < parameters_.num_agents; ++i) {
-    keyframe_buffers_.emplace_back(std::deque<std::shared_ptr<KeyFrame>,
-          Eigen::aligned_allocator<std::shared_ptr<KeyFrame>>>());
+    keyframe_buffers_.emplace_back(
+        std::deque<std::shared_ptr<KeyFrame>,
+                   Eigen::aligned_allocator<std::shared_ptr<KeyFrame>>>());
     odom_queues_.emplace_back(OdomMeasurementQueue());
     gps_queues_.emplace_back(GPSmeasurementQueue());
     odom_gps_queues_.emplace_back(OdomGPScombinedQueue());
@@ -167,52 +169,47 @@ void System::init() {
     failed_gps_sync_queues_.emplace_back(GPSmeasurementQueue());
     pcl_pub_kf_id_queues_.emplace_back(std::deque<uint64_t>());
 
-    keyframe_msgs_received_.emplace_back(KeyFrameMsgQueuePtr(
-        new KeyFrameMsgQueue()));
-    odom_msgs_received_.emplace_back(OdometryMsgQueuePtr(
-        new OdometryMsgQueue()));
-    pcl_msgs_received_.emplace_back(PclMsgQueuePtr(
-        new PclMsgQueue()));
-    gps_msgs_received_.emplace_back(GpsMsgQueuePtr(
-        new GpsMsgQueue()));
-    keyframes_received_.emplace_back(KeyFrameQueuePtr(
-        new KeyFrameQueue()));
-    pub_msgs_received_.emplace_back(ResultQueuePtr(
-        new ResultQueue()));
-    fused_pcl_msgs_received_.emplace_back(FusedPclMsgQueuePtr(
-        new FusedPclMsgQueue()));
+    keyframe_msgs_received_.emplace_back(
+        KeyFrameMsgQueuePtr(new KeyFrameMsgQueue()));
+    odom_msgs_received_.emplace_back(
+        OdometryMsgQueuePtr(new OdometryMsgQueue()));
+    pcl_msgs_received_.emplace_back(PclMsgQueuePtr(new PclMsgQueue()));
+    gps_msgs_received_.emplace_back(GpsMsgQueuePtr(new GpsMsgQueue()));
+    keyframes_received_.emplace_back(KeyFrameQueuePtr(new KeyFrameQueue()));
+    pub_msgs_received_.emplace_back(ResultQueuePtr(new ResultQueue()));
+    fused_pcl_msgs_received_.emplace_back(
+        FusedPclMsgQueuePtr(new FusedPclMsgQueue()));
     fused_pcl_msgs_buffer_.emplace_back(FusedPclMsgDequeue());
   }
 
   // Initialize and start the threads
   for (size_t i = 0; i < parameters_.num_agents; ++i) {
-    keyframe_consumer_threads_.emplace_back(
-          &System::keyframeConsumerLoop, this, i);
-    keyframe_optimizer_threads_.emplace_back(
-          &System::optimizerLoop, this, i);
-    gps_consumer_threads_.emplace_back(
-          &System::gpsConsumerLoop, this, i);
+    keyframe_consumer_threads_.emplace_back(&System::keyframeConsumerLoop, this,
+                                            i);
+    keyframe_optimizer_threads_.emplace_back(&System::optimizerLoop, this, i);
+    gps_consumer_threads_.emplace_back(&System::gpsConsumerLoop, this, i);
     // No longer using regular pcl setup, everything uses FusedPcl
     // pcl_consumrer_threads_.emplace_back(
     //       &System::pclConsumerLoop, this, i);
-    fused_pcl_consumer_threads_.emplace_back(
-          &System::fusedPclConsumerLoop, this, i);
+    fused_pcl_consumer_threads_.emplace_back(&System::fusedPclConsumerLoop,
+                                             this, i);
     publisher_threads_.emplace_back(&System::publisherLoop, this, i);
   }
-  std::cout << "Started all threads" << std::endl;
+
+  ROS_INFO("[PGB] Started all threads");
 }
 
-
 void System::keyframeConsumerLoop(const uint64_t agent_id) {
-   comm_msgs::keyframeConstPtr keyframe_msg;
+  comm_msgs::keyframeConstPtr keyframe_msg;
   for (;;) {
-    if (keyframe_msgs_received_[agent_id]->PopBlocking(&keyframe_msg)==false) {
+    if (keyframe_msgs_received_[agent_id]->PopBlocking(&keyframe_msg) ==
+        false) {
       return;
     }
 
     // Create a new keyframe
-    std::shared_ptr<KeyFrame> new_keyframe = std::make_shared<KeyFrame>(
-         keyframe_msg, parameters_, agent_id);
+    std::shared_ptr<KeyFrame> new_keyframe =
+        std::make_shared<KeyFrame>(keyframe_msg, parameters_, agent_id);
 
     // Add this keyframe to the buffer (in order to have 1 KF delay to assign
     // the incoming other measurements such as GPS), extract the information
@@ -223,13 +220,13 @@ void System::keyframeConsumerLoop(const uint64_t agent_id) {
       std::lock_guard<std::mutex> lock(kf_mutex_);
       if (keyframe_buffers_[agent_id].empty()) {
         keyframe_buffers_[agent_id].push_back(new_keyframe);
-          continue;
+        continue;
       } else if (keyframe_buffers_[agent_id].size() == 1) {
         keyframe_buffers_[agent_id].push_back(new_keyframe);
         keyframe_to_process = keyframe_buffers_[agent_id].front();
         time_start = keyframe_to_process->getTimestamp();
         const double newer_timestamp = new_keyframe->getTimestamp();
-        time_end = time_start + (newer_timestamp - time_start)/2.0;
+        time_end = time_start + (newer_timestamp - time_start) / 2.0;
       } else {
         keyframe_to_process = keyframe_buffers_[agent_id].back();
 
@@ -238,25 +235,26 @@ void System::keyframeConsumerLoop(const uint64_t agent_id) {
             keyframe_buffers_[agent_id].front()->getTimestamp();
         const double newer_timestamp = new_keyframe->getTimestamp();
         const double current_timestamp = keyframe_to_process->getTimestamp();
-        time_start = current_timestamp -
-            (current_timestamp - older_timestamp)/2.0;
-        time_end = current_timestamp +
-            (newer_timestamp - current_timestamp)/2.0;
+        time_start =
+            current_timestamp - (current_timestamp - older_timestamp) / 2.0;
+        time_end =
+            current_timestamp + (newer_timestamp - current_timestamp) / 2.0;
         // Compute the mid-timestamps for the data association
         keyframe_buffers_[agent_id].push_back(new_keyframe);
         keyframe_buffers_[agent_id].pop_front();
       }
     }
-    
+
     bool only_insert = false;
-    if ((keyframe_to_process->getTimestamp() - last_loop_closure_[agent_id])
-        < 6.0) {
+    if ((keyframe_to_process->getTimestamp() - last_loop_closure_[agent_id]) <
+        6.0) {
       only_insert = true;
     }
 
-    // Only allow loop closure detection after GPS alignment is complete for agents with
-    // an active GPS. (is this necessary....)
-    if ((maps_[agent_id]->getGPSStatus()) && (!maps_[agent_id]->hasValidWorldTransformation())) {
+    // Only allow loop closure detection after GPS alignment is complete for
+    // agents with an active GPS. (is this necessary....)
+    if ((maps_[agent_id]->getGPSStatus()) &&
+        (!maps_[agent_id]->hasValidWorldTransformation())) {
       only_insert = true;
     }
 
@@ -265,25 +263,30 @@ void System::keyframeConsumerLoop(const uint64_t agent_id) {
     if (recent_kf.empty()) {
       only_insert = true;
     }
-    
-    // Only process loop detections + add to keyframe database for some keyframes
-    kf_loop_detection_skip_ = (kf_loop_detection_skip_ + 1) % parameters_.loop_detect_skip_kf;
+
+    // Only process loop detections + add to keyframe database for some
+    // keyframes
+    kf_loop_detection_skip_ =
+        (kf_loop_detection_skip_ + 1) % parameters_.loop_detect_skip_kf;
 
     auto start = chrono::steady_clock::now();
     bool loop_detected;
     if (kf_loop_detection_skip_ == 0) {
       loop_detected = loop_detectors_[agent_id]->addKeyframe(
-           keyframe_to_process, only_insert);
-    }
-    else {
+          keyframe_to_process, only_insert);
+    } else {
       loop_detected = false;
     }
 
     Eigen::Matrix4d T_M_O = maps_[agent_id]->getOdomToMap();
     auto end = chrono::steady_clock::now();
-    Identifier kf_id =  keyframe_to_process->getId();
-    std::cout <<  "Loop_detection for agent " << agent_id << " took: " << 
-      chrono::duration_cast<chrono::milliseconds>(end - start).count() << " ms" << std::endl; // "\t Landmarks: " << keyframe_to_process->getNumLandmarks() << std::endl;
+    Identifier kf_id = keyframe_to_process->getId();
+    std::cout
+        << "Loop_detection for agent " << agent_id << " took: "
+        << chrono::duration_cast<chrono::milliseconds>(end - start).count()
+        << " ms"
+        << std::endl;  // "\t Landmarks: " <<
+                       // keyframe_to_process->getNumLandmarks() << std::endl;
 
     // Update the poses
     Eigen::Matrix4d T_O_Si = keyframe_to_process->getOdometryPose();
@@ -292,64 +295,80 @@ void System::keyframeConsumerLoop(const uint64_t agent_id) {
     keyframe_to_process->setOptimizedPose(T_M_Si);
     maps_[agent_id]->addKeyFrame(keyframe_to_process);
 
-    // If loop closure was detected between agents without valid world transformations,
-    // create initial transformation to be used in the global optimization
+    // If loop closure was detected between agents without valid world
+    // transformations, create initial transformation to be used in the global
+    // optimization
 
     if (loop_detected) {
-      std::pair<Identifier, Eigen::Matrix4d> recent_merge = maps_[agent_id]->getNewMerge();
+      std::pair<Identifier, Eigen::Matrix4d> recent_merge =
+          maps_[agent_id]->getNewMerge();
       Identifier recent_merge_ID = recent_merge.first;
       uint64_t recent_merge_agent = recent_merge_ID.first;
-      std::shared_ptr<KeyFrame> recent_merge_kf = maps_[recent_merge_agent]->getKeyFrame(recent_merge_ID);
+      std::shared_ptr<KeyFrame> recent_merge_kf =
+          maps_[recent_merge_agent]->getKeyFrame(recent_merge_ID);
 
       // prevent empty keyframe from being returned
       if (recent_merge_ID.second > 0) {
-        // std::cout << "CURRENT AGENT " << agent_id << " VALID: "<< maps_[agent_id]->hasValidWorldTransformation() << std::endl;
-        // std::cout << "MERGE AGENT " << recent_merge_agent << " VALID: "<< maps_[recent_merge_agent]->hasValidWorldTransformation() << std::endl;
-        if (!maps_[agent_id]->hasValidWorldTransformation() || !maps_[recent_merge_agent]->hasValidWorldTransformation()) {
+        // std::cout << "CURRENT AGENT " << agent_id << " VALID: "<<
+        // maps_[agent_id]->hasValidWorldTransformation() << std::endl;
+        // std::cout << "MERGE AGENT " << recent_merge_agent << " VALID: "<<
+        // maps_[recent_merge_agent]->hasValidWorldTransformation() <<
+        // std::endl;
+        if (!maps_[agent_id]->hasValidWorldTransformation() ||
+            !maps_[recent_merge_agent]->hasValidWorldTransformation()) {
           Eigen::Matrix4d T_W_M_anchor;
           Eigen::Matrix4d T_M_S_anchor;
           Eigen::Matrix4d T_M_S_merge;
           Eigen::Matrix4d T_W_M_init;
           Eigen::Matrix4d T_A_B = recent_merge.second;
-          Eigen::Matrix4d covariance = Eigen::MatrixXd::Zero(4,4);
-          covariance(0, 0) = covariance(1, 1) = covariance(2, 2) = covariance(3, 3) = 0.5;
+          Eigen::Matrix4d covariance = Eigen::MatrixXd::Zero(4, 4);
+          covariance(0, 0) = covariance(1, 1) = covariance(2, 2) =
+              covariance(3, 3) = 0.5;
 
-          if (!maps_[agent_id]->hasValidWorldTransformation() && !maps_[recent_merge_agent]->hasValidWorldTransformation()) {
-            uint64_t lower_agent_id = (agent_id < recent_merge_agent) ? agent_id : recent_merge_agent;
+          if (!maps_[agent_id]->hasValidWorldTransformation() &&
+              !maps_[recent_merge_agent]->hasValidWorldTransformation()) {
+            uint64_t lower_agent_id =
+                (agent_id < recent_merge_agent) ? agent_id : recent_merge_agent;
             maps_[lower_agent_id]->setWorldAnchor();
             Eigen::Matrix4d T_W_M = Eigen::Matrix4d::Identity();
-            Eigen::Matrix4d covariance = Eigen::MatrixXd::Zero(4,4);
-            covariance(0, 0) = covariance(1, 1) = covariance(2, 2) = covariance(3, 3) = 0.001;
+            Eigen::Matrix4d covariance = Eigen::MatrixXd::Zero(4, 4);
+            covariance(0, 0) = covariance(1, 1) = covariance(2, 2) =
+                covariance(3, 3) = 0.001;
             maps_[lower_agent_id]->setWorldTransformation(T_W_M, covariance);
             T_W_M_anchor = T_W_M;
           }
 
           if (maps_[agent_id]->hasValidWorldTransformation()) {
-            
             T_W_M_anchor = maps_[agent_id]->getWorldTransformation();
             T_M_S_anchor = T_M_Si;
             T_M_S_merge = recent_merge_kf->getOptimizedPose();
-            T_W_M_init = T_W_M_anchor * T_M_S_anchor * T_A_B * T_M_S_merge.inverse();
+            T_W_M_init =
+                T_W_M_anchor * T_M_S_anchor * T_A_B * T_M_S_merge.inverse();
 
-            maps_[recent_merge_agent]->setWorldTransformation(T_W_M_init, covariance);
-            std::cout << "OPTION 1: Initializing world transform for agent " << recent_merge_agent << " based on " << agent_id << std::endl;
-          }
-          else if (maps_[recent_merge_agent]->hasValidWorldTransformation()){
+            maps_[recent_merge_agent]->setWorldTransformation(T_W_M_init,
+                                                              covariance);
+            std::cout << "OPTION 1: Initializing world transform for agent "
+                      << recent_merge_agent << " based on " << agent_id
+                      << std::endl;
+          } else if (maps_[recent_merge_agent]->hasValidWorldTransformation()) {
             T_W_M_anchor = maps_[recent_merge_agent]->getWorldTransformation();
             T_M_S_anchor = recent_merge_kf->getOptimizedPose();
             T_M_S_merge = T_M_Si;
-            T_W_M_init = T_W_M_anchor * T_M_S_anchor * T_A_B.inverse() * T_M_S_merge.inverse();
+            T_W_M_init = T_W_M_anchor * T_M_S_anchor * T_A_B.inverse() *
+                         T_M_S_merge.inverse();
 
             maps_[agent_id]->setWorldTransformation(T_W_M_init, covariance);
-            std::cout << "OPTION 2: Initializing world transform for agent " << agent_id << " based on " << recent_merge_agent << std::endl;
+            std::cout << "OPTION 2: Initializing world transform for agent "
+                      << agent_id << " based on " << recent_merge_agent
+                      << std::endl;
           }
         }
       }
     }
 
     // Associate the GPS measurements with the keyframe
-    OdomGPScombinedQueue gps_measurements = getCombinedMeasurement(
-          time_start, time_end, agent_id);
+    OdomGPScombinedQueue gps_measurements =
+        getCombinedMeasurement(time_start, time_end, agent_id);
     if (!gps_measurements.empty()) {
       for (auto itr = gps_measurements.begin(); itr != gps_measurements.end();
            ++itr) {
@@ -360,18 +379,22 @@ void System::keyframeConsumerLoop(const uint64_t agent_id) {
 
     // start = chrono::steady_clock::now();
     if (loop_detected) {
-      ROS_INFO("Found a loop closure for agent %lu frame %lu", agent_id, kf_id.second);
+      ROS_INFO("[PGB] Found a loop closure for agent %lu frame %lu", agent_id,
+               kf_id.second);
       last_loop_closure_[agent_id] = keyframe_to_process->getTimestamp();
     } else {
       if (maps_[agent_id]->hasValidWorldTransformation() &&
           !trigger_init_opt_[agent_id]) {
         // Optimize the local graph
         Optimizer::optimizeLocalPoseGraph(
-            maps_[agent_id], parameters_.local_opt_window_size, optimization_flags_[agent_id], parameters_);
+            maps_[agent_id], parameters_.local_opt_window_size,
+            optimization_flags_[agent_id], parameters_);
       }
     }
     // end = chrono::steady_clock::now();
-    // std::cout << "Local Optimization for agent " << agent_id << " took: " << chrono::duration_cast<chrono::milliseconds>(end - start).count() << " ms" << std::endl;
+    // std::cout << "Local Optimization for agent " << agent_id << " took: " <<
+    // chrono::duration_cast<chrono::milliseconds>(end - start).count() << " ms"
+    // << std::endl;
 
     // Extract the transformations and push into Result to publish for TF tree
     T_M_O = maps_[agent_id]->getOdomToMap();
@@ -379,12 +402,15 @@ void System::keyframeConsumerLoop(const uint64_t agent_id) {
     if (maps_[agent_id]->hasValidWorldTransformation()) {
       T_W_M = maps_[agent_id]->getWorldTransformation();
     }
-    Result result(keyframe_to_process->getTimestamp(), T_M_O, T_W_M, keyframe_to_process->getOptimizedPose());
+    Result result(keyframe_to_process->getTimestamp(), T_M_O, T_W_M,
+                  keyframe_to_process->getOptimizedPose());
     pub_msgs_received_[agent_id]->PushBlockingIfFull(result, 2);
-    
+
     // Store the new poses in ceres structure for later optimization
-    Optimizer::homogenousToCeres(keyframe_to_process->getLoopClosurePose(), keyframe_to_process->ceres_pose_loop_);
-    Optimizer::homogenousToCeres(keyframe_to_process->getExtrinsics(), keyframe_to_process->ceres_extrinsics_);
+    Optimizer::homogenousToCeres(keyframe_to_process->getLoopClosurePose(),
+                                 keyframe_to_process->ceres_pose_loop_);
+    Optimizer::homogenousToCeres(keyframe_to_process->getExtrinsics(),
+                                 keyframe_to_process->ceres_extrinsics_);
 
     // RVIZ path publishing
     updatePath(agent_id);
@@ -396,19 +422,19 @@ void System::keyframeConsumerLoop(const uint64_t agent_id) {
     // Push the keyframe to the optimizer loop
     keyframes_received_[agent_id]->PushBlockingIfFull(keyframe_to_process, 1);
 
-
     // Write poses to csv for debugging
-    std::string filename = "/home/btearle/Documents/debug/pgbe/poses/pose_" +
-    std::to_string(agent_id) + "_" + std::to_string(keyframe_to_process->getId().second) + ".csv";
-    // std::to_string(agent_id) + ".csv";
-    if (kf_id.second % 1 == 0) {
-      maps_[agent_id]->writePosesToFileInWorld(filename);
-    }
-    filename = "/home/btearle/Documents/debug/pgbe/poses/pose_" +
-        // std::to_string(agent_id) + "_" + std::to_string(keyframe_to_process->getId().second) + ".csv";
-        std::to_string(agent_id) + ".csv";
-    if (kf_id.second % 1 == 0) {
-      maps_[agent_id]->writePosesToFileInWorld(filename);
+    if (parameters_.logging) {
+      std::string filename =
+          parameters_.log_folder + "/pose_" + std::to_string(agent_id) + "_" +
+          std::to_string(keyframe_to_process->getId().second) + ".csv";
+      if (kf_id.second % 1 == 0) {
+        maps_[agent_id]->writePosesToFileInWorld(filename);
+      }
+      filename =
+          parameters_.log_folder + "/pose_" + std::to_string(agent_id) + ".csv";
+      if (kf_id.second % 1 == 0) {
+        maps_[agent_id]->writePosesToFileInWorld(filename);
+      }
     }
   }
 }
@@ -422,7 +448,6 @@ void System::optimizerLoop(const uint64_t agent_id) {
     // Check if we had a loop closure
     if (!keyframe_ptr->getLoopClosureEdges().empty() ||
         trigger_init_opt_[agent_id]) {
-
       // Add agents to each other's merged lists
       LoopEdges kf_loop_edges = keyframe_ptr->getLoopClosureEdges();
       for (size_t i = 0; i < kf_loop_edges.size(); ++i) {
@@ -430,20 +455,25 @@ void System::optimizerLoop(const uint64_t agent_id) {
         if (kf_loop_edges[i].id_A.first != other_agent) {
           maps_[agent_id]->addMergedAgents(other_agent);
           maps_[other_agent]->addMergedAgents(agent_id);
-        
-          std::vector<uint64_t> other_agent_merged_list = maps_[other_agent]->getMergedAgents();
-          for (size_t i = 0; i < other_agent_merged_list.size(); ++i){
+
+          std::vector<uint64_t> other_agent_merged_list =
+              maps_[other_agent]->getMergedAgents();
+          for (size_t i = 0; i < other_agent_merged_list.size(); ++i) {
             maps_[agent_id]->addMergedAgents(other_agent_merged_list[i]);
           }
         }
       }
 
       // Check merged agent lists of other agents
-      std::vector<uint64_t> current_merged_maps = maps_[agent_id]->getMergedAgents();
-      for (auto iter = current_merged_maps.begin(); iter != current_merged_maps.end(); iter++){
-        std::vector<uint64_t> other_agents_maps = maps_[*iter]->getMergedAgents();
-        for (auto iter = other_agents_maps.begin(); iter != other_agents_maps.end(); iter++) {
-            maps_[agent_id]->addMergedAgents(*iter);
+      std::vector<uint64_t> current_merged_maps =
+          maps_[agent_id]->getMergedAgents();
+      for (auto iter = current_merged_maps.begin();
+           iter != current_merged_maps.end(); iter++) {
+        std::vector<uint64_t> other_agents_maps =
+            maps_[*iter]->getMergedAgents();
+        for (auto iter = other_agents_maps.begin();
+             iter != other_agents_maps.end(); iter++) {
+          maps_[agent_id]->addMergedAgents(*iter);
         }
       }
 
@@ -452,7 +482,8 @@ void System::optimizerLoop(const uint64_t agent_id) {
         Optimizer::MapVec tmp_map_agent_id;
 
         // Loop through current merged agents to add to optimization
-        std::vector<uint64_t> merged_agents = maps_[agent_id]->getMergedAgents();
+        std::vector<uint64_t> merged_agents =
+            maps_[agent_id]->getMergedAgents();
         std::cout << "Optimizing over agents: " << agent_id << ": ";
         for (size_t i = 0; i < merged_agents.size(); ++i) {
           uint64_t agent_map_to_add = merged_agents[i];
@@ -461,11 +492,14 @@ void System::optimizerLoop(const uint64_t agent_id) {
         }
         std::cout << std::endl;
         auto start = chrono::steady_clock::now();
-        Optimizer::optimizeMapPoseGraph(tmp_map_agent_id, optimization_flags_[agent_id], parameters_);
+        Optimizer::optimizeMapPoseGraph(
+            tmp_map_agent_id, optimization_flags_[agent_id], parameters_);
         auto end = chrono::steady_clock::now();
 
-        std::cout <<  "Global Optimization for agent " << agent_id << " took: " << 
-          chrono::duration_cast<chrono::milliseconds>(end - start).count() << " ms" << std::endl;
+        std::cout
+            << "Global Optimization for agent " << agent_id << " took: "
+            << chrono::duration_cast<chrono::milliseconds>(end - start).count()
+            << " ms" << std::endl;
 
         trigger_init_opt_[agent_id] = false;
       }
@@ -487,15 +521,21 @@ void System::optimizerLoop(const uint64_t agent_id) {
         // result(kf_timestamp, maps_[agent_id]->getOdomToMap(), T_W_M);
       }
 
-      // Write transformed trajectory of agents to file for global error comparison
-      for (size_t i = 0; i < parameters_.num_agents; ++i) {
-        std::string filename = "/home/btearle/Documents/debug/pgbe/global_opt_poses/pose_";
-        if (maps_[i]->hasValidWorldTransformation()){
-          Map::KFvec last_keyframe = maps_[i]->getMostRecentN(2);
-          if (maps_[i]->getMapSize() > 1){
-            std::cout << "Writing global opt poses for agent: " << i << std::endl;
-            filename = filename + std::to_string(i) + "_" + std::to_string(last_keyframe[0]->getId().second) + ".csv";
-            maps_[i]->writePosesToFileInWorld(filename);
+      // Write transformed trajectory of agents to file for global error
+      // comparison
+      if (parameters_.logging) {
+        for (size_t i = 0; i < parameters_.num_agents; ++i) {
+          std::string filename = parameters_.log_folder + "/global_opt_pose_";
+          if (maps_[i]->hasValidWorldTransformation()) {
+            Map::KFvec last_keyframe = maps_[i]->getMostRecentN(2);
+            if (maps_[i]->getMapSize() > 1) {
+              std::cout << "Writing global opt poses for agent: " << i
+                        << std::endl;
+              filename = filename + std::to_string(i) + "_" +
+                         std::to_string(last_keyframe[0]->getId().second) +
+                         ".csv";
+              maps_[i]->writePosesToFileInWorld(filename);
+            }
           }
         }
       }
@@ -506,12 +546,14 @@ void System::optimizerLoop(const uint64_t agent_id) {
 
 void System::gpsConsumerLoop(const uint64_t agent_id) {
   sensor_msgs::NavSatFixConstPtr gps_msg;
-  if (std::all_of(parameters_.gps_active.begin(), parameters_.gps_active.end(), [](bool b) { return b == false;})) {
+  if (std::all_of(parameters_.gps_active.begin(), parameters_.gps_active.end(),
+                  [](bool b) { return b == false; })) {
     if (agent_id == 0) {
       maps_[agent_id]->setWorldAnchor();
       Eigen::Matrix4d T_W_M = Eigen::Matrix4d::Identity();
-      Eigen::Matrix4d covariance = Eigen::MatrixXd::Zero(4,4);
-      covariance(0, 0) = covariance(1, 1) = covariance(2, 2) = covariance(3, 3) = 0.001;
+      Eigen::Matrix4d covariance = Eigen::MatrixXd::Zero(4, 4);
+      covariance(0, 0) = covariance(1, 1) = covariance(2, 2) =
+          covariance(3, 3) = 0.001;
       maps_[agent_id]->setWorldTransformation(T_W_M, covariance);
     }
   }
@@ -529,20 +571,32 @@ void System::gpsConsumerLoop(const uint64_t agent_id) {
     Eigen::Matrix3d covariance;
     covariance.setZero();
     if (agent_id != 0) {
-      (gps_msg->position_covariance[0] > 0) ? covariance(0,0) = gps_msg->position_covariance[0] * 1.0 : covariance(0,0) = 0.1;
-      (gps_msg->position_covariance[4] > 0) ? covariance(1,1) = gps_msg->position_covariance[4] * 1.0 : covariance(1,1) = 0.1;
-      (gps_msg->position_covariance[8] > 0) ? covariance(2,2) = gps_msg->position_covariance[8] * 10.0 : covariance(2,2) = 0.1;
+      (gps_msg->position_covariance[0] > 0)
+          ? covariance(0, 0) = gps_msg->position_covariance[0] * 1.0
+          : covariance(0, 0) = 0.1;
+      (gps_msg->position_covariance[4] > 0)
+          ? covariance(1, 1) = gps_msg->position_covariance[4] * 1.0
+          : covariance(1, 1) = 0.1;
+      (gps_msg->position_covariance[8] > 0)
+          ? covariance(2, 2) = gps_msg->position_covariance[8] * 10.0
+          : covariance(2, 2) = 0.1;
     } else {
-      (gps_msg->position_covariance[0] > 0) ? covariance(0,0) = gps_msg->position_covariance[0] * 1.0 : covariance(0,0) = 0.1;
-    (gps_msg->position_covariance[4] > 0) ? covariance(1,1) = gps_msg->position_covariance[4] * 1.0 : covariance(1,1) = 0.1;
-    (gps_msg->position_covariance[8] > 0) ? covariance(2,2) = gps_msg->position_covariance[8] * 1.0 : covariance(2,2) = 0.1;
+      (gps_msg->position_covariance[0] > 0)
+          ? covariance(0, 0) = gps_msg->position_covariance[0] * 1.0
+          : covariance(0, 0) = 0.1;
+      (gps_msg->position_covariance[4] > 0)
+          ? covariance(1, 1) = gps_msg->position_covariance[4] * 1.0
+          : covariance(1, 1) = 0.1;
+      (gps_msg->position_covariance[8] > 0)
+          ? covariance(2, 2) = gps_msg->position_covariance[8] * 1.0
+          : covariance(2, 2) = 0.1;
     }
 
     // Convert into the local frame
     double local_x, local_y, local_z;
     gps_converters_[agent_id]->geodetic2Enu(
-          gps_msg->latitude, gps_msg->longitude, gps_msg->altitude,
-          &local_x, &local_y, &local_z);
+        gps_msg->latitude, gps_msg->longitude, gps_msg->altitude, &local_x,
+        &local_y, &local_z);
     if (parameters_.simulation) {
       local_measurement[0] = local_y;
       local_measurement[1] = -local_x;
@@ -552,8 +606,8 @@ void System::gpsConsumerLoop(const uint64_t agent_id) {
       local_measurement[1] = local_y;
       local_measurement[2] = local_z;
     }
-    GPSmeasurement gps_measurement(
-          timestamp, raw_measurement, local_measurement);
+    GPSmeasurement gps_measurement(timestamp, raw_measurement,
+                                   local_measurement);
     gps_measurement.covariance = covariance;
     {
       std::lock_guard<std::mutex> lock(gps_mutex_);
@@ -561,25 +615,27 @@ void System::gpsConsumerLoop(const uint64_t agent_id) {
     }
 
     // If available associate odometry measurements
-    OdomMeasurementQueue close_odoms = getOdomMeasurements(
-          timestamp - 0.5, timestamp + 0.5, agent_id);
+    OdomMeasurementQueue close_odoms =
+        getOdomMeasurements(timestamp - 0.5, timestamp + 0.5, agent_id);
     if (!close_odoms.empty()) {
       syncAndAlignGPS(agent_id, gps_measurement, close_odoms);
       deleteGpsMeasurements(gps_measurement.timestamp, agent_id);
-    }
-    else {
+    } else {
       // add gps_measurement to failed queue so it can be tried again
       failed_gps_sync_queues_[agent_id].push_back(gps_measurement);
-      while ((gps_measurement.timestamp - failed_gps_sync_queues_[agent_id].front().timestamp) > 2.0) {
+      while ((gps_measurement.timestamp -
+              failed_gps_sync_queues_[agent_id].front().timestamp) > 2.0) {
         failed_gps_sync_queues_[agent_id].pop_front();
       }
     }
 
     // Attempt to sync previous failed kf
     if (!failed_gps_sync_queues_[agent_id].empty()) {
-      GPSmeasurement failed_gps_measurement = failed_gps_sync_queues_[agent_id].front();
-      OdomMeasurementQueue failed_close_odoms = getOdomMeasurements(
-          failed_gps_measurement.timestamp - 0.5, failed_gps_measurement.timestamp + 0.5, agent_id);
+      GPSmeasurement failed_gps_measurement =
+          failed_gps_sync_queues_[agent_id].front();
+      OdomMeasurementQueue failed_close_odoms =
+          getOdomMeasurements(failed_gps_measurement.timestamp - 0.5,
+                              failed_gps_measurement.timestamp + 0.5, agent_id);
       if (!close_odoms.empty()) {
         syncAndAlignGPS(agent_id, failed_gps_measurement, failed_close_odoms);
         failed_gps_sync_queues_[agent_id].pop_front();
@@ -591,7 +647,8 @@ void System::gpsConsumerLoop(const uint64_t agent_id) {
 void System::fusedPclConsumerLoop(const uint64_t agent_id) {
   comm_msgs::fused_pclConstPtr fused_pcl_msg_raw, fused_pcl_msg;
   for (;;) {
-    if (fused_pcl_msgs_received_[agent_id]->PopBlocking(&fused_pcl_msg_raw) == false) {
+    if (fused_pcl_msgs_received_[agent_id]->PopBlocking(&fused_pcl_msg_raw) ==
+        false) {
       return;
     }
     fused_pcl_msgs_buffer_[agent_id].push_back(fused_pcl_msg_raw);
@@ -603,7 +660,8 @@ void System::fusedPclConsumerLoop(const uint64_t agent_id) {
       fused_pcl_msgs_buffer_[agent_id].pop_front();
       uint64_t kf_anchor_id_num = fused_pcl_msg->anchorId;
       const double timestamp = fused_pcl_msg->header.stamp.toSec();
-      pcl::PointCloud<pcl::PointXYZRGB>::Ptr fused_pcl_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+      pcl::PointCloud<pcl::PointXYZRGB>::Ptr fused_pcl_cloud(
+          new pcl::PointCloud<pcl::PointXYZRGB>);
       pcl::fromROSMsg(fused_pcl_msg->fusedPointcloud, *fused_pcl_cloud);
 
       // pointcloud is delived in the camera frame of the anchor kf
@@ -620,7 +678,7 @@ void System::fusedPclConsumerLoop(const uint64_t agent_id) {
           break;
         }
       }
-  //    std::cout << "counter_" << agent_id << ": " << counter << std::endl;
+      //    std::cout << "counter_" << agent_id << ": " << counter << std::endl;
       if (counter >= 5) {
         continue;
       }
@@ -634,20 +692,27 @@ void System::fusedPclConsumerLoop(const uint64_t agent_id) {
       // get anchor kf id from front of the queue waiting to be published
       uint64_t pcl_pub_kf_id = pcl_pub_kf_id_queues_[agent_id].front();
 
-      // check if this kf id is still in the sliding window for local optimization
-      Map::KFvec local_opt_keyframes = maps_[agent_id]->getMostRecentN(1);//parameters_.local_opt_window_size);
+      // check if this kf id is still in the sliding window for local
+      // optimization
+      Map::KFvec local_opt_keyframes = maps_[agent_id]->getMostRecentN(
+          1);  // parameters_.local_opt_window_size);
       std::set<uint64_t> local_opt_kf_ids;
-  //    for (auto iter = local_opt_keyframes.begin(); iter != local_opt_keyframes.end(); iter++) {
-  //      std::shared_ptr<KeyFrame> local_opt_kf_i = *iter;
-  //      local_opt_kf_ids.insert(local_opt_kf_i->getId().second);
-  //    }
+      //    for (auto iter = local_opt_keyframes.begin(); iter !=
+      //    local_opt_keyframes.end(); iter++) {
+      //      std::shared_ptr<KeyFrame> local_opt_kf_i = *iter;
+      //      local_opt_kf_ids.insert(local_opt_kf_i->getId().second);
+      //    }
 
       // if it is no longer in the set, then publish that kf's pointcloud
-      if(local_opt_kf_ids.count(pcl_pub_kf_id) == 0){
-        // std::cout << "KF " << pcl_pub_kf_id << " no longer in sliding window, PUBLISH" << std::endl;
-        Identifier pcl_pub_kf_identifier = std::make_pair(agent_id, pcl_pub_kf_id);
-        std::shared_ptr<KeyFrame> pcl_pub_kf = maps_[agent_id]->getKeyFrame(pcl_pub_kf_identifier);
-        pcl::PointCloud<pcl::PointXYZRGB>::Ptr pub_fused_pcl_cloud = pcl_pub_kf->getFusedPcl();
+      if (local_opt_kf_ids.count(pcl_pub_kf_id) == 0) {
+        // std::cout << "KF " << pcl_pub_kf_id << " no longer in sliding window,
+        // PUBLISH" << std::endl;
+        Identifier pcl_pub_kf_identifier =
+            std::make_pair(agent_id, pcl_pub_kf_id);
+        std::shared_ptr<KeyFrame> pcl_pub_kf =
+            maps_[agent_id]->getKeyFrame(pcl_pub_kf_identifier);
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr pub_fused_pcl_cloud =
+            pcl_pub_kf->getFusedPcl();
         const double pub_timestamp = pcl_pub_kf->getTimestamp();
 
         Eigen::Matrix4d T_S_C = pcl_pub_kf->getExtrinsics();
@@ -656,8 +721,7 @@ void System::fusedPclConsumerLoop(const uint64_t agent_id) {
 
         if (maps_[agent_id]->hasValidWorldTransformation()) {
           T_W_M = maps_[agent_id]->getWorldTransformation();
-        }
-        else {
+        } else {
           T_W_M = Eigen::Matrix4d::Identity();
         }
 
@@ -666,11 +730,12 @@ void System::fusedPclConsumerLoop(const uint64_t agent_id) {
         // publish the pointcloud
         if (maps_[agent_id]->getGPSStatus()) {
           if (maps_[agent_id]->hasValidWorldTransformation()) {
-            fused_pcl_callback_(agent_id, pub_timestamp, pub_fused_pcl_cloud, T_W_C);
+            fused_pcl_callback_(agent_id, pub_timestamp, pub_fused_pcl_cloud,
+                                T_W_C);
           }
-        }
-        else {
-          fused_pcl_callback_(agent_id, pub_timestamp, pub_fused_pcl_cloud, T_W_C);
+        } else {
+          fused_pcl_callback_(agent_id, pub_timestamp, pub_fused_pcl_cloud,
+                              T_W_C);
         }
 
         pcl_pub_kf_id_queues_[agent_id].pop_front();
@@ -689,22 +754,22 @@ void System::pclConsumerLoop(const uint64_t agent_id) {
     // Create the internal representation
     PclMeasurement pcl_meas;
     pcl_meas.timestamp = pcl_msg->header.stamp.toSec();
-    pcl::PointCloud<pcl::PointXYZRGB>  pcl_cloud;
-    pcl::fromROSMsg (*pcl_msg, pcl_cloud);
+    pcl::PointCloud<pcl::PointXYZRGB> pcl_cloud;
+    pcl::fromROSMsg(*pcl_msg, pcl_cloud);
     const size_t num_points = pcl_cloud.points.size();
     pcl_meas.points.reserve(num_points);
     for (size_t i = 0; i < num_points; ++i) {
-      Eigen::Vector3d point(pcl_cloud.points[i].x,
-          pcl_cloud.points[i].y, pcl_cloud.points[i].z);
-      Eigen::Vector3d color(pcl_cloud.points[i].r,
-          pcl_cloud.points[i].g, pcl_cloud.points[i].b);
+      Eigen::Vector3d point(pcl_cloud.points[i].x, pcl_cloud.points[i].y,
+                            pcl_cloud.points[i].z);
+      Eigen::Vector3d color(pcl_cloud.points[i].r, pcl_cloud.points[i].g,
+                            pcl_cloud.points[i].b);
       pcl_meas.points.push_back(point);
       pcl_meas.colors.push_back(color);
     }
 
     // Associate this measurement with an odometry
     OdomMeasurementQueue odom_meas = getOdomMeasurements(
-          pcl_meas.timestamp - 0.05, pcl_meas.timestamp + 0.05, agent_id);
+        pcl_meas.timestamp - 0.05, pcl_meas.timestamp + 0.05, agent_id);
 
     if (!odom_meas.empty()) {
       OdomPclCombined comb_meas;
@@ -725,12 +790,14 @@ void System::publisherLoop(const uint64_t agent_id) {
     if (pub_msgs_received_[agent_id]->PopBlocking(&result) == false) {
       return;
     }
-    transform_callback_(result.timestamp, agent_id, result.T_M_O, result.T_W_M, result.T_M_Si);
+    transform_callback_(result.timestamp, agent_id, result.T_M_O, result.T_W_M,
+                        result.T_M_Si);
   }
 }
 
-GPSmeasurementQueue System::getGPSmeasurements(
-    const double& start_time, const double& end_time, const uint64_t agent_id) {
+GPSmeasurementQueue System::getGPSmeasurements(const double& start_time,
+                                               const double& end_time,
+                                               const uint64_t agent_id) {
   // sanity checks:
   // if end time is smaller than begin time, return empty queue.
   // if begin time is larger than newest imu time, return empty queue.
@@ -758,15 +825,15 @@ GPSmeasurementQueue System::getGPSmeasurements(
   return GPSmeasurementQueue(first_gps, last_gps);
 }
 
-OdomMeasurementQueue System::getOdomMeasurements(
-    const double& start_time, const double& end_time,
-    const uint64_t agent_id) {
+OdomMeasurementQueue System::getOdomMeasurements(const double& start_time,
+                                                 const double& end_time,
+                                                 const uint64_t agent_id) {
   // sanity checks:
   // if end time is smaller than begin time, return empty queue.
   // if begin time is larger than newest imu time, return empty queue.
-    if (odom_queues_[agent_id].empty() || end_time < start_time ||
-        start_time > odom_queues_[agent_id].back().timestamp) {
-      return OdomMeasurementQueue();
+  if (odom_queues_[agent_id].empty() || end_time < start_time ||
+      start_time > odom_queues_[agent_id].back().timestamp) {
+    return OdomMeasurementQueue();
   }
 
   std::lock_guard<std::mutex> lock(odom_mutex_);
@@ -788,9 +855,9 @@ OdomMeasurementQueue System::getOdomMeasurements(
   return OdomMeasurementQueue(first_odom, last_odom);
 }
 
-OdomGPScombinedQueue System::getCombinedMeasurement(
-    const double& start_time, const double& end_time,
-    const uint64_t agent_id) {
+OdomGPScombinedQueue System::getCombinedMeasurement(const double& start_time,
+                                                    const double& end_time,
+                                                    const uint64_t agent_id) {
   // sanity checks:
   // if end time is smaller than begin time, return empty queue.
   // if begin time is larger than newest imu time, return empty queue.
@@ -819,8 +886,7 @@ OdomGPScombinedQueue System::getCombinedMeasurement(
 }
 
 OdomPclCombinedQueue System::getCombinedPclMeasurement(
-    const double& start_time, const double& end_time,
-    const uint64_t agent_id) {
+    const double& start_time, const double& end_time, const uint64_t agent_id) {
   // sanity checks:
   // if end time is smaller than begin time, return empty queue.
   // if begin time is larger than newest imu time, return empty queue.
@@ -848,8 +914,8 @@ OdomPclCombinedQueue System::getCombinedPclMeasurement(
   return OdomPclCombinedQueue(first_comb, last_comb);
 }
 
-int System::deleteGpsMeasurements(
-    const double &clear_until, const uint64_t agent_id) {
+int System::deleteGpsMeasurements(const double& clear_until,
+                                  const uint64_t agent_id) {
   std::lock_guard<std::mutex> lock(gps_mutex_);
   if (gps_queues_[agent_id].front().timestamp > clear_until) {
     return 0;
@@ -871,8 +937,8 @@ int System::deleteGpsMeasurements(
   return removed;
 }
 
-int System::deleteOdomMeasurements(
-    const double &clear_until, const uint64_t agent_id) {
+int System::deleteOdomMeasurements(const double& clear_until,
+                                   const uint64_t agent_id) {
   std::lock_guard<std::mutex> lock(odom_mutex_);
   if (odom_queues_[agent_id].front().timestamp > clear_until) {
     return 0;
@@ -894,8 +960,8 @@ int System::deleteOdomMeasurements(
   return removed;
 }
 
-int System::deletePclMeasurements(
-    const double &clear_until, const uint64_t agent_id) {
+int System::deletePclMeasurements(const double& clear_until,
+                                  const uint64_t agent_id) {
   std::lock_guard<std::mutex> lock(pcl_mutex_);
   if (pcl_queues_[agent_id].front().timestamp > clear_until) {
     return 0;
@@ -917,9 +983,8 @@ int System::deletePclMeasurements(
   return removed;
 }
 
-
-int System::deleteCombinedMeasurements(
-    const double &clear_until, const uint64_t agent_id) {
+int System::deleteCombinedMeasurements(const double& clear_until,
+                                       const uint64_t agent_id) {
   std::lock_guard<std::mutex> lock(odom_pcl_mutex_);
   if (odom_gps_queues_[agent_id].front().timestamp > clear_until) {
     return 0;
@@ -936,14 +1001,14 @@ int System::deleteCombinedMeasurements(
     ++removed;
   }
 
-  odom_gps_queues_[agent_id].erase(
-        odom_gps_queues_[agent_id].begin(), erase_end);
+  odom_gps_queues_[agent_id].erase(odom_gps_queues_[agent_id].begin(),
+                                   erase_end);
 
   return removed;
 }
 
-int System::deleteCombinedPclMeasurements(
-    const double &clear_until, const uint64_t agent_id) {
+int System::deleteCombinedPclMeasurements(const double& clear_until,
+                                          const uint64_t agent_id) {
   std::lock_guard<std::mutex> lock(odom_pcl_mutex_);
   if (odom_pcl_queues_[agent_id].front().timestamp > clear_until) {
     return 0;
@@ -960,85 +1025,84 @@ int System::deleteCombinedPclMeasurements(
     ++removed;
   }
 
-  odom_pcl_queues_[agent_id].erase(
-        odom_pcl_queues_[agent_id].begin(), erase_end);
+  odom_pcl_queues_[agent_id].erase(odom_pcl_queues_[agent_id].begin(),
+                                   erase_end);
 
   return removed;
 }
 
-void System::syncAndAlignGPS(const uint64_t agent_id, GPSmeasurement& gps_measurement, 
-  OdomMeasurementQueue& close_odoms) {
+void System::syncAndAlignGPS(const uint64_t agent_id,
+                             GPSmeasurement& gps_measurement,
+                             OdomMeasurementQueue& close_odoms) {
+  OdomMeasurement closest_meas;
+  double min_dist = std::numeric_limits<double>::max();
+  for (auto itr = close_odoms.begin(); itr != close_odoms.end(); ++itr) {
+    if (std::abs(itr->timestamp - gps_measurement.timestamp) < min_dist) {
+      closest_meas = (*itr);
+      min_dist = std::abs(itr->timestamp - gps_measurement.timestamp);
+    }
+  }
+  // Set the height to the closest odometry height due to large fluctuations in
+  // gps readings
+  if (parameters_.ignore_gps_altitude) {
+    gps_measurement.local_measurement(2) = closest_meas.translation(2);
+  }
 
-      OdomMeasurement closest_meas;
-      double min_dist = std::numeric_limits<double>::max();
-      for (auto itr = close_odoms.begin(); itr != close_odoms.end(); ++itr) {
-        if (std::abs(itr->timestamp - gps_measurement.timestamp) < min_dist) {
-          closest_meas = (*itr);
-          min_dist = std::abs(itr->timestamp - gps_measurement.timestamp);
-        }
-      }
-      // Set the height to the closest odometry height due to large fluctuations in gps readings
-      if (parameters_.ignore_gps_altitude) {
-        gps_measurement.local_measurement(2) = closest_meas.translation(2);
-      }
+  OdomGPScombined combined_meas(closest_meas, gps_measurement);
+  OdomGPScombinedVector init_corresp;
+  {
+    std::lock_guard<std::mutex> lock(odom_gps_mutex_);
+    odom_gps_queues_[agent_id].push_back(combined_meas);
+    odom_gps_init_queues_[agent_id].push_back(combined_meas);
+    init_corresp.reserve(odom_gps_init_queues_[agent_id].size());
+    for (auto itr = odom_gps_init_queues_[agent_id].begin();
+         itr != odom_gps_init_queues_[agent_id].end(); ++itr) {
+      init_corresp.push_back((*itr));
+    }
+  }
 
-      OdomGPScombined combined_meas(closest_meas, gps_measurement);
-      OdomGPScombinedVector init_corresp;
-      {
-        std::lock_guard<std::mutex> lock(odom_gps_mutex_);
-        odom_gps_queues_[agent_id].push_back(combined_meas);
-        odom_gps_init_queues_[agent_id].push_back(combined_meas);
-        init_corresp.reserve(odom_gps_init_queues_[agent_id].size());
-        for (auto itr = odom_gps_init_queues_[agent_id].begin();
-             itr != odom_gps_init_queues_[agent_id].end(); ++itr) {
-          init_corresp.push_back((*itr));
-        }
-      }
-
-      Eigen::Matrix4d T_W_M, covariance;
-      if (!maps_[agent_id]->hasValidWorldTransformation()) {
-        bool could_init = Optimizer::computeGPSalignment(
-              init_corresp, parameters_.gps_parameters[agent_id].offset, T_W_M,
-              covariance, parameters_, odom_gps_init_queues_[agent_id]);
-        if (could_init) {
-          maps_[agent_id]->setWorldTransformation(T_W_M, covariance);
-          trigger_init_opt_[agent_id] = true;
-          ROS_INFO("Initialized the GPS reference transformation for agent %lu", agent_id);
-
-        }
-      }
+  Eigen::Matrix4d T_W_M, covariance;
+  if (!maps_[agent_id]->hasValidWorldTransformation()) {
+    bool could_init = Optimizer::computeGPSalignment(
+        init_corresp, parameters_.gps_parameters[agent_id].offset, T_W_M,
+        covariance, parameters_, odom_gps_init_queues_[agent_id]);
+    if (could_init) {
+      maps_[agent_id]->setWorldTransformation(T_W_M, covariance);
+      trigger_init_opt_[agent_id] = true;
+      ROS_INFO(
+          "[PGB] Initialized the GPS reference transformation for agent %lu",
+          agent_id);
+    }
+  }
 }
-
 
 void System::updatePath(const uint64_t agent_id) {
+  std::lock_guard<std::mutex> lock(path_mutex_);
 
-    std::lock_guard<std::mutex> lock(path_mutex_);
+  paths_[agent_id].poses.clear();
 
-    paths_[agent_id].poses.clear();
+  for (auto keyframe : maps_[agent_id]->getAllKeyFrames()) {
+    Eigen::Matrix4d T_W_M = maps_[agent_id]->getWorldTransformation();
+    Eigen::Matrix4d T_S_C = keyframe->getExtrinsics();
+    Eigen::Matrix4d T_M_S = keyframe->getOptimizedPose();
+    Eigen::Matrix4d T_W_C = T_W_M * T_M_S * T_S_C;
+    const Eigen::Quaterniond q_W_C(T_W_C.block<3, 3>(0, 0));
 
-    for(auto keyframe : maps_[agent_id]->getAllKeyFrames()) {
-        Eigen::Matrix4d T_W_M = maps_[agent_id]->getWorldTransformation();
-        Eigen::Matrix4d T_S_C = keyframe->getExtrinsics();
-        Eigen::Matrix4d T_M_S = keyframe->getOptimizedPose();
-        Eigen::Matrix4d T_W_C = T_W_M * T_M_S * T_S_C;
-        const Eigen::Quaterniond q_W_C(T_W_C.block<3,3>(0, 0));
+    geometry_msgs::PoseStamped pose_stamped;
+    pose_stamped.header.stamp = ros::Time(keyframe->getTimestamp());
+    pose_stamped.header.frame_id = "world";
+    pose_stamped.pose.position.x = T_W_C(0, 3);
+    pose_stamped.pose.position.y = T_W_C(1, 3);
+    pose_stamped.pose.position.z = T_W_C(2, 3);
+    pose_stamped.pose.orientation.x = q_W_C.x();
+    pose_stamped.pose.orientation.y = q_W_C.y();
+    pose_stamped.pose.orientation.z = q_W_C.z();
+    pose_stamped.pose.orientation.w = q_W_C.w();
 
-        geometry_msgs::PoseStamped pose_stamped;
-        pose_stamped.header.stamp = ros::Time(keyframe->getTimestamp());
-        pose_stamped.header.frame_id = "world";
-        pose_stamped.pose.position.x = T_W_C(0, 3);
-        pose_stamped.pose.position.y = T_W_C(1, 3);
-        pose_stamped.pose.position.z = T_W_C(2, 3);
-        pose_stamped.pose.orientation.x = q_W_C.x();
-        pose_stamped.pose.orientation.y = q_W_C.y();
-        pose_stamped.pose.orientation.z = q_W_C.z();
-        pose_stamped.pose.orientation.w = q_W_C.w();
-
-        paths_[agent_id].poses.push_back(pose_stamped);
-        paths_[agent_id].header = pose_stamped.header;
-    }
-    path_callback_(paths_[agent_id], agent_id);
+    paths_[agent_id].poses.push_back(pose_stamped);
+    paths_[agent_id].header = pose_stamped.header;
+  }
+  path_callback_(paths_[agent_id], agent_id);
 }
 
-
-} // namespace pgbe
+}  // namespace pgbe

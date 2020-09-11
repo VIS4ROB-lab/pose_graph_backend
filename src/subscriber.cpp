@@ -1,30 +1,31 @@
 /*
-* Copyright (c) 2018, Vision for Robotics Lab
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-* * Redistributions of source code must retain the above copyright
-* notice, this list of conditions and the following disclaimer.
-* * Redistributions in binary form must reproduce the above copyright
-* notice, this list of conditions and the following disclaimer in the
-* documentation and/or other materials provided with the distribution.
-* * Neither the name of the Vision for Robotics Lab, ETH Zurich nor the
-* names of its contributors may be used to endorse or promote products
-* derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-* ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*
-*/
+ * Copyright (c) 2018, Vision for Robotics Lab
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * * Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * * Neither the name of the Vision for Robotics Lab, ETH Zurich nor the
+ * names of its contributors may be used to endorse or promote products
+ * derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
 
 /*
  * subscriber.cpp
@@ -38,23 +39,18 @@
 
 namespace pgbe {
 
-Subscriber::Subscriber() {
+Subscriber::Subscriber() {}
 
-}
+Subscriber::~Subscriber() {}
 
-Subscriber::~Subscriber() {
-
-}
-
-Subscriber::Subscriber(ros::NodeHandle &nh,
-                       const SystemParameters &parameters,
-                       std::shared_ptr<System> system) :
-  nh_(&nh), parameters_(parameters), system_(system) {
+Subscriber::Subscriber(ros::NodeHandle &nh, const SystemParameters &parameters,
+                       std::shared_ptr<System> system)
+    : nh_(&nh), parameters_(parameters), system_(system) {
   setNodeHandle(nh, parameters);
 }
 
 void Subscriber::setNodeHandle(ros::NodeHandle &nh,
-                               const SystemParameters& parameters) {
+                               const SystemParameters &parameters) {
   nh_ = &nh;
   parameters_ = parameters;
 
@@ -67,53 +63,52 @@ void Subscriber::setNodeHandle(ros::NodeHandle &nh,
   for (size_t i = 0; i < parameters_.num_agents; ++i) {
     ros::Subscriber tmp_sub_kf = nh_->subscribe<comm_msgs::keyframe>(
         "/keyframe" + std::to_string(i), 1000,
-          boost::bind(&Subscriber::keyFrameCallback, this, _1, i));
+        boost::bind(&Subscriber::keyFrameCallback, this, _1, i));
     sub_keyframe_.push_back(tmp_sub_kf);
 
     ros::Subscriber tmp_sub_odom = nh_->subscribe<nav_msgs::Odometry>(
         "/odometry" + std::to_string(i), 1000,
-          boost::bind(&Subscriber::odometryCallback, this, _1, i));
+        boost::bind(&Subscriber::odometryCallback, this, _1, i));
     sub_odometry_.push_back(tmp_sub_odom);
 
     ros::Subscriber tmp_sub_pcl = nh_->subscribe<sensor_msgs::PointCloud2>(
-          "/pointcloud" + std::to_string(i), 1000,
-          boost::bind(&Subscriber::pointCloudCallback, this, _1, i));
+        "/pointcloud" + std::to_string(i), 1000,
+        boost::bind(&Subscriber::pointCloudCallback, this, _1, i));
     sub_pointcloud_.push_back(tmp_sub_pcl);
 
     ros::Subscriber tmp_sub_gps = nh_->subscribe<sensor_msgs::NavSatFix>(
-          "/gps" + std::to_string(i), 1000,
-          boost::bind(&Subscriber::gpsCallback, this, _1, i));
+        "/gps" + std::to_string(i), 1000,
+        boost::bind(&Subscriber::gpsCallback, this, _1, i));
     sub_gps_.push_back(tmp_sub_gps);
 
-    ros::Subscriber tmp_sub_fake_gps = nh_->subscribe<
-        geometry_msgs::TransformStamped>(
-          "/fake_gps" + std::to_string(i), 1000,
-          boost::bind(&Subscriber::fakeGpsCallback, this, _1, i));
+    ros::Subscriber tmp_sub_fake_gps =
+        nh_->subscribe<geometry_msgs::TransformStamped>(
+            "/fake_gps" + std::to_string(i), 1000,
+            boost::bind(&Subscriber::fakeGpsCallback, this, _1, i));
     sub_fake_gps_.push_back(tmp_sub_fake_gps);
 
-    ros::Subscriber tmp_sub_fake_gps2 = nh_->subscribe<
-        geometry_msgs::PointStamped>(
-          "/fake_gps2_" + std::to_string(i), 1000,
-          boost::bind(&Subscriber::fakeGpsCallback2, this, _1, i));
+    ros::Subscriber tmp_sub_fake_gps2 =
+        nh_->subscribe<geometry_msgs::PointStamped>(
+            "/fake_gps2_" + std::to_string(i), 1000,
+            boost::bind(&Subscriber::fakeGpsCallback2, this, _1, i));
     sub_fake_gps2_.push_back(tmp_sub_fake_gps2);
 
     ros::Subscriber tmp_sub_fused_pcl = nh_->subscribe<comm_msgs::fused_pcl>(
-          "/fused_pcl" + std::to_string(i), 1000,
-          boost::bind(&Subscriber::fusedPointCloudCallback, this, _1, i));
+        "/fused_pcl" + std::to_string(i), 1000,
+        boost::bind(&Subscriber::fusedPointCloudCallback, this, _1, i));
     sub_fused_pcl_.push_back(tmp_sub_fused_pcl);
   }
-  std::cout << "Subscribers set" << std::endl;
+  ROS_INFO("[PGB] Subscribers set");
 }
 
-void Subscriber::keyFrameCallback(
-    const comm_msgs::keyframeConstPtr &kf_msg,
-    const uint64_t agent_id) {
+void Subscriber::keyFrameCallback(const comm_msgs::keyframeConstPtr &kf_msg,
+                                  const uint64_t agent_id) {
   // Just push the measurement to the system
   system_->addKeyFrameMsg(kf_msg, agent_id);
 }
 
-void Subscriber::odometryCallback(
-    const nav_msgs::OdometryConstPtr &odom_msg, const uint64_t agent_id) {
+void Subscriber::odometryCallback(const nav_msgs::OdometryConstPtr &odom_msg,
+                                  const uint64_t agent_id) {
   // Just push the measurement to the system
   system_->addOdometryMsg(odom_msg, agent_id);
 }
@@ -125,7 +120,8 @@ void Subscriber::pointCloudCallback(
 }
 
 void Subscriber::fusedPointCloudCallback(
-    const comm_msgs::fused_pclConstPtr &fused_pcl_msg, const uint64_t agent_id) {
+    const comm_msgs::fused_pclConstPtr &fused_pcl_msg,
+    const uint64_t agent_id) {
   // Just push the measurement to the system
   system_->addFusedPointCloudMsg(fused_pcl_msg, agent_id);
 }
@@ -137,7 +133,7 @@ void Subscriber::gpsCallback(const sensor_msgs::NavSatFixConstPtr &gps_msg,
 }
 
 void Subscriber::fakeGpsCallback(
-    const geometry_msgs::TransformStampedConstPtr& msg,
+    const geometry_msgs::TransformStampedConstPtr &msg,
     const uint64_t agent_id) {
   if (std::abs(last_fake_gps_[agent_id] - msg->header.stamp.toSec()) < 0.32) {
     return;
@@ -179,8 +175,7 @@ void Subscriber::fakeGpsCallback(
 }
 
 void Subscriber::fakeGpsCallback2(
-    const geometry_msgs::PointStampedConstPtr& msg,
-    const uint64_t agent_id) {
+    const geometry_msgs::PointStampedConstPtr &msg, const uint64_t agent_id) {
   if (std::abs(last_fake_gps2_[agent_id] - msg->header.stamp.toSec()) < 0.99) {
     return;
   }
@@ -194,8 +189,8 @@ void Subscriber::fakeGpsCallback2(
 
   // Add Gaussian noise to fake GPS measurement (used for EuRoC testing)
   auto dist = std::bind(std::normal_distribution<double>{0.0, 0.1},
-                      std::mt19937(std::random_device{}()));
-  
+                        std::mt19937(std::random_device{}()));
+
   double x_rand = dist();
   double y_rand = dist();
   double z_rand = dist();
@@ -231,4 +226,4 @@ void Subscriber::fakeGpsCallback2(
   last_fake_gps2_[agent_id] = msg->header.stamp.toSec();
 }
 
-} // namespace pgbe
+}  // namespace pgbe

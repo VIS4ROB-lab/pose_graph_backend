@@ -1,30 +1,31 @@
 /*
-* Copyright (c) 2018, Vision for Robotics Lab
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-* * Redistributions of source code must retain the above copyright
-* notice, this list of conditions and the following disclaimer.
-* * Redistributions in binary form must reproduce the above copyright
-* notice, this list of conditions and the following disclaimer in the
-* documentation and/or other materials provided with the distribution.
-* * Neither the name of the Vision for Robotics Lab, ETH Zurich nor the
-* names of its contributors may be used to endorse or promote products
-* derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-* ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*
-*/
+ * Copyright (c) 2018, Vision for Robotics Lab
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * * Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * * Neither the name of the Vision for Robotics Lab, ETH Zurich nor the
+ * names of its contributors may be used to endorse or promote products
+ * derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
 
 /*
  * keyframe-database.cpp
@@ -37,8 +38,8 @@
 
 namespace pgbe {
 
-KeyFrameDatabase::KeyFrameDatabase(const SystemParameters& params) :
-    parameters_(params) {
+KeyFrameDatabase::KeyFrameDatabase(const SystemParameters& params)
+    : parameters_(params) {
   inverted_file_.resize(parameters_.voc_ptr->size());
 }
 
@@ -57,7 +58,7 @@ void KeyFrameDatabase::erase(std::shared_ptr<KeyFrame> keyframe_ptr) {
   for (DBoW2::BowVector::const_iterator it = keyframe_ptr->bow_vec_.begin();
        it != keyframe_ptr->bow_vec_.end(); ++it) {
     // List of keyframes that share the word
-    KFlist &list_of_kfs = inverted_file_[it->first];
+    KFlist& list_of_kfs = inverted_file_[it->first];
 
     for (KFlist::iterator lit = list_of_kfs.begin(); lit != list_of_kfs.end();
          ++it) {
@@ -74,11 +75,13 @@ void KeyFrameDatabase::clear() {
   inverted_file_.resize(parameters_.voc_ptr->size());
 }
 
-std::vector<std::shared_ptr<KeyFrame>, Eigen::aligned_allocator<std::shared_ptr<KeyFrame>>>
-  KeyFrameDatabase::detectLoopCandidates(std::shared_ptr<KeyFrame> query, KFset connected_kfs,
-    // TODO: KFset all_kfs_in_map,
-    const double min_score, const int max_loop_candidates) {
-  
+std::vector<std::shared_ptr<KeyFrame>,
+            Eigen::aligned_allocator<std::shared_ptr<KeyFrame>>>
+KeyFrameDatabase::detectLoopCandidates(std::shared_ptr<KeyFrame> query,
+                                       KFset connected_kfs,
+                                       // TODO: KFset all_kfs_in_map,
+                                       const double min_score,
+                                       const int max_loop_candidates) {
   KFlist kfs_sharing_words;
   std::map<std::shared_ptr<KeyFrame>, int> common_word_count;
 
@@ -86,8 +89,9 @@ std::vector<std::shared_ptr<KeyFrame>, Eigen::aligned_allocator<std::shared_ptr<
     std::unique_lock<std::mutex> lock(mutex_);
     for (DBoW2::BowVector::const_iterator it = query->bow_vec_.begin();
          it != query->bow_vec_.end(); ++it) {
-      KFlist &listed_kfs = inverted_file_[it->first];
-      for (KFlist::iterator lit = listed_kfs.begin(); lit != listed_kfs.end(); ++lit) {
+      KFlist& listed_kfs = inverted_file_[it->first];
+      for (KFlist::iterator lit = listed_kfs.begin(); lit != listed_kfs.end();
+           ++lit) {
         std::shared_ptr<KeyFrame> kf_ptr = (*lit);
         if (kf_ptr->getId() == query->getId()) continue;
 
@@ -156,23 +160,26 @@ std::vector<std::shared_ptr<KeyFrame>, Eigen::aligned_allocator<std::shared_ptr<
 
   // only return a max number of loop candidates with the best score
   // first sort by descending score
-  score_and_match.sort(
-    [](std::pair<float, std::shared_ptr<KeyFrame>>& a, std::pair<float, std::shared_ptr<KeyFrame>>& b)
-    { return a.first > b.first;} );
+  score_and_match.sort([](std::pair<float, std::shared_ptr<KeyFrame>>& a,
+                          std::pair<float, std::shared_ptr<KeyFrame>>& b) {
+    return a.first > b.first;
+  });
 
-  std::list<std::pair<float, std::shared_ptr<KeyFrame>>>::iterator max_loop_candidates_iter;
+  std::list<std::pair<float, std::shared_ptr<KeyFrame>>>::iterator
+      max_loop_candidates_iter;
   if (score_and_match.size() > max_loop_candidates) {
-    max_loop_candidates_iter = std::next(score_and_match.begin(), max_loop_candidates);
-  }
-  else {
+    max_loop_candidates_iter =
+        std::next(score_and_match.begin(), max_loop_candidates);
+  } else {
     max_loop_candidates_iter = score_and_match.end();
   }
 
   KFvec loop_candidates;
   loop_candidates.reserve(score_and_match.size());
-  for (auto it = score_and_match.begin(); it != max_loop_candidates_iter; ++it) {
-    auto itr = std::find(loop_candidates.begin(), loop_candidates.end(),
-                         it->second);
+  for (auto it = score_and_match.begin(); it != max_loop_candidates_iter;
+       ++it) {
+    auto itr =
+        std::find(loop_candidates.begin(), loop_candidates.end(), it->second);
     if (itr == loop_candidates.end()) {
       loop_candidates.push_back((it->second));
     }
@@ -181,4 +188,4 @@ std::vector<std::shared_ptr<KeyFrame>, Eigen::aligned_allocator<std::shared_ptr<
   return loop_candidates;
 }
 
-} // namespace pgbe
+}  // namespace pgbe

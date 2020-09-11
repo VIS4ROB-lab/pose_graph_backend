@@ -15,7 +15,7 @@
  *
  * Written by Dorian Galvez-Lopez,
  * University of Zaragoza
- * 
+ *
  * Check my website to obtain updates: http://webdiis.unizar.es/~dorian
  *
  * \section requirements Requirements
@@ -26,7 +26,7 @@
  * If you use this software in academic works, please cite:
  <pre>
    @@ARTICLE{GalvezTRO12,
-    author={Galvez-Lopez, Dorian and Tardos, J. D.}, 
+    author={Galvez-Lopez, Dorian and Tardos, J. D.},
     journal={IEEE Transactions on Robotics},
     title={Bags of Binary Words for Fast Place Recognition in Image Sequences},
     year={2012},
@@ -40,10 +40,10 @@
  </pre>
  *
  * \section license License
- * This file is licensed under a Creative Commons 
- * Attribution-NonCommercial-ShareAlike 3.0 license. 
- * This file can be freely used and users can use, download and edit this file 
- * provided that credit is attributed to the original author. No users are 
+ * This file is licensed under a Creative Commons
+ * Attribution-NonCommercial-ShareAlike 3.0 license.
+ * This file can be freely used and users can use, download and edit this file
+ * provided that credit is attributed to the original author. No users are
  * permitted to use this file for commercial purposes unless explicit permission
  * is given by the original author. Derivative works must be licensed using the
  * same or similar license.
@@ -56,9 +56,7 @@
 #define __D_T_DBOW2__
 
 /// Includes all the data structures to manage vocabularies and image databases
-namespace DBoW2
-{
-}
+namespace DBoW2 {}
 
 #include "TemplatedVocabulary.h"
 //#include "TemplatedDatabase.h"
@@ -68,45 +66,45 @@ namespace DBoW2
 //#include "FSurf64.h"
 //#include "FFloat2d.h"
 //#include "FBrief.h"
-#include "FORB.h"
 #include "FBRISK.h"
-
+#include "FORB.h"
 
 /// Float2d Vocabulary
-//typedef DBoW2::TemplatedVocabulary<DBoW2::FFloat2d::TDescriptor, DBoW2::FFloat2d>
+// typedef DBoW2::TemplatedVocabulary<DBoW2::FFloat2d::TDescriptor,
+// DBoW2::FFloat2d>
 //  Float2dVocabulary;
 
 /// SURF64 Vocabulary
-//typedef DBoW2::TemplatedVocabulary<DBoW2::FSurf64::TDescriptor, DBoW2::FSurf64> 
+// typedef DBoW2::TemplatedVocabulary<DBoW2::FSurf64::TDescriptor,
+// DBoW2::FSurf64>
 //  Surf64Vocabulary;
 
 /// SURF64 Database
-//typedef DBoW2::TemplatedDatabase<DBoW2::FSurf64::TDescriptor, DBoW2::FSurf64> 
+// typedef DBoW2::TemplatedDatabase<DBoW2::FSurf64::TDescriptor, DBoW2::FSurf64>
 //  Surf64Database;
-  
+
 /// BRIEF Vocabulary
-//typedef DBoW2::TemplatedVocabulary<DBoW2::FBrief::TDescriptor, DBoW2::FBrief> 
+// typedef DBoW2::TemplatedVocabulary<DBoW2::FBrief::TDescriptor, DBoW2::FBrief>
 //  BriefVocabulary;
 
 /// BRIEF Database
-//typedef DBoW2::TemplatedDatabase<DBoW2::FBrief::TDescriptor, DBoW2::FBrief> 
+// typedef DBoW2::TemplatedDatabase<DBoW2::FBrief::TDescriptor, DBoW2::FBrief>
 //  BriefDatabase;
 
 /// BRISK Vocabulary
 typedef DBoW2::TemplatedVocabulary<DBoW2::FBRISK::TDescriptor, DBoW2::FBRISK>
-  BRISKVocabulary;
+    BRISKVocabulary;
 
 /// BRISK Database
-//typedef DBoW2::TemplatedDatabase<DBoW2::FBRISK::TDescriptor, DBoW2::FBRISK>
+// typedef DBoW2::TemplatedDatabase<DBoW2::FBRISK::TDescriptor, DBoW2::FBRISK>
 //  BRISKDatabase;
 
 /// ORB Vocabulary
 typedef DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB>
-  ORBVocabulary;
+    ORBVocabulary;
 
 /// ORB Database
-//typedef DBoW2::TemplatedDatabase<DBoW2::FORB::TDescriptor, DBoW2::FORB>
+// typedef DBoW2::TemplatedDatabase<DBoW2::FORB::TDescriptor, DBoW2::FORB>
 //  BRISKDatabase;
 
 #endif
-
